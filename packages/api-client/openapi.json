@@ -446,6 +446,44 @@
         ]
       }
     },
+    "/api/shift-instances/{id}/handover": {
+      "post": {
+        "operationId": "HandoverController_handover",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "handover"
+        ]
+      }
+    },
+    "/api/follows/{id}/status": {
+      "patch": {
+        "operationId": "HandoverController_updateFollow",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "handover"
+        ]
+      }
+    },
     "/api/canvas/{operationalDate}": {
       "get": {
         "operationId": "canvas_get",
@@ -1139,6 +1177,21 @@
           "openedShiftId",
           "transferredFollowCount",
           "alreadyCompleted"
+        ]
+      },
+      "UpdateFollowStatusRequestDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "COMPLETED"
+            ]
+          }
+        },
+        "required": [
+          "status"
         ]
       },
       "TagResponseDto": {

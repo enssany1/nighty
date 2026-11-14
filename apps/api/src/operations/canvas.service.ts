@@ -14,6 +14,17 @@ const canvasInclude = {
           author: { select: { id: true, displayName: true } },
         },
       },
+      incomingTransfers: {
+        where: { status: "OPEN" as const },
+        include: {
+          sourceEntry: {
+            include: {
+              todoItems: { orderBy: { position: "asc" as const } },
+              author: { select: { id: true, displayName: true } },
+            },
+          },
+        },
+      },
     },
   },
 } as const;
@@ -39,6 +50,11 @@ export class CanvasService {
         status: shift.status,
         writable: shift.status === "ACTIVE" && (role === "ADMIN" || shift.assignmentSnapshots.some((assignment) => assignment.userId === userId)),
         entries: shift.entries,
+        incomingFollows: shift.incomingTransfers.map((transfer) => ({
+          transferId: transfer.id,
+          status: transfer.status,
+          entry: transfer.sourceEntry,
+        })),
       })),
     };
   }

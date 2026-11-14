@@ -129,6 +129,9 @@ export interface components {
     "ToggleTodoRequestDto": {
       "completed": boolean;
     };
+    "UpdateFollowStatusRequestDto": {
+      "status": "OPEN" | "COMPLETED";
+    };
     "UpdateProfileRequestDto": {
       "displayName": string;
     };
@@ -221,6 +224,13 @@ export interface paths {
       response: unknown;
     };
   };
+  "/api/follows/{id}/status": {
+    patch: {
+      operationId: "HandoverController_updateFollow";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/health": {
     get: {
       operationId: "HealthController_getHealth";
@@ -259,6 +269,13 @@ export interface paths {
       operationId: "settings_get";
       request: unknown;
       response: components["schemas"]["SettingResponseDto"];
+    };
+  };
+  "/api/shift-instances/{id}/handover": {
+    post: {
+      operationId: "HandoverController_handover";
+      request: unknown;
+      response: unknown;
     };
   };
   "/api/shift-instances/{shiftId}/entries": {
@@ -370,6 +387,7 @@ export type TagResponseDto = components["schemas"]["TagResponseDto"];
 export type TemporaryPasswordResponseDto = components["schemas"]["TemporaryPasswordResponseDto"];
 export type TodoItemDto = components["schemas"]["TodoItemDto"];
 export type ToggleTodoRequestDto = components["schemas"]["ToggleTodoRequestDto"];
+export type UpdateFollowStatusRequestDto = components["schemas"]["UpdateFollowStatusRequestDto"];
 export type UpdateProfileRequestDto = components["schemas"]["UpdateProfileRequestDto"];
 export type UpdateUserRequestDto = components["schemas"]["UpdateUserRequestDto"];
 export type UserResponseDto = components["schemas"]["UserResponseDto"];

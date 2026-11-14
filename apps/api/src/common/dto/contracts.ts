@@ -156,6 +156,10 @@ export class HandoverResponseDto {
   @ApiProperty({ type: Boolean }) @IsBoolean() alreadyCompleted!: boolean;
 }
 
+export class UpdateFollowStatusRequestDto {
+  @ApiProperty({ enum: FollowStatusDto }) @IsEnum(FollowStatusDto) status!: FollowStatusDto;
+}
+
 export class TagResponseDto {
   @ApiProperty({ type: String, format: "uuid" }) @IsUUID() id!: string;
   @ApiProperty({ type: String }) @Matches(/^[a-z0-9][a-z0-9-]{0,79}$/) name!: string;
@@ -211,6 +215,6 @@ export const NIGHTY_OPENAPI_MODELS = [
   UpdateUserRequestDto, UpdateProfileRequestDto, TemporaryPasswordResponseDto,
   ShiftDefinitionResponseDto, SaveShiftDefinitionRequestDto, ReorderShiftsRequestDto, TodoItemDto,
   EntryResponseDto, CreateEntryRequestDto, ToggleTodoRequestDto, ShiftCanvasDto, CanvasResponseDto,
-  HandoverResponseDto, TagResponseDto, SaveTagRequestDto, AttachmentResponseDto,
+  HandoverResponseDto, UpdateFollowStatusRequestDto, TagResponseDto, SaveTagRequestDto, AttachmentResponseDto,
   SearchResultDto, SearchResponseDto, SettingResponseDto, AuditEventResponseDto,
 ] as const;
