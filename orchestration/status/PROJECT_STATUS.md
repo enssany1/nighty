@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 14 November 2026, 21:27 +04
+**Updated:** 14 November 2026, 21:35 +04
 
-**Phase:** Production implementation (TASK-002 checkpoint)
+**Phase:** Production implementation (TASK-003 checkpoint)
 
 **State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 and TASK-002 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Two of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-003 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Three of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -32,6 +32,16 @@ TASK-002 added:
 - Four passing real PostgreSQL integration tests.
 
 Checkpoint evidence: docs/implementation/TASK-002-CHECKPOINT.md.
+
+TASK-003 added:
+
+- Validated Nest request/response DTOs for every approved V1 API area.
+- Global transformed whitelist validation with unknown-field rejection.
+- Stable OpenAPI component schemas, paths, and operation identifiers.
+- Deterministic checked-in browser contract generation consumed through `@nighty/api-client`.
+- Passing contract, generation-cleanliness, typecheck, build, and production dependency gates.
+
+Checkpoint evidence: docs/implementation/TASK-003-CHECKPOINT.md.
 
 ## Correction of the previous status
 
@@ -107,4 +117,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-002 locally and begin TASK-003 validated DTO, OpenAPI, and generated frontend client work. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Checkpoint TASK-003 locally and begin TASK-004 secure sessions, CSRF, and role authorization. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.

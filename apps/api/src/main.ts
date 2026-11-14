@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { randomUUID } from "node:crypto";
 import { NestFactory } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
 import { json, urlencoded, type Request, type Response, type NextFunction } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
@@ -24,6 +25,11 @@ async function bootstrap(): Promise<void> {
     response.setHeader("x-request-id", requestId);
     next();
   });
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  }));
   app.setGlobalPrefix("api");
   app.enableShutdownHooks();
   await app.listen(readPort(process.env.API_PORT), "0.0.0.0");

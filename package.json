@@ -14,6 +14,7 @@
   "scripts": {
     "check": "npm run typecheck && npm run test:all",
     "build": "npm run build --workspaces --if-present",
+    "api:generate": "npm run openapi:generate -w @nighty/api && npm run generate -w @nighty/api-client",
     "dev:api": "npm run dev -w @nighty/api",
     "dev:web": "npm run dev -w @nighty/web",
     "test": "node --disable-warning=ExperimentalWarning --test orchestration/runner/test/*.test.ts",
