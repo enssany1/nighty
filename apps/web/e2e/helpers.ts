@@ -1,0 +1,2 @@
+import { expect, type Page } from "@playwright/test";
+export async function login(page:Page){await page.goto("/");await page.getByLabel("Username").fill(process.env.NIGHTY_E2E_USER??"aisha");await page.locator("#password").fill(process.env.NIGHTY_E2E_PASSWORD??"NightyDemo!2026");await page.getByRole("button",{name:"Sign in"}).click();await expect(page.getByRole("heading",{name:/Friday|Saturday|Sunday|Monday|Tuesday|Wednesday|Thursday/}).first()).toBeVisible();}

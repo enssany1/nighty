@@ -36,6 +36,14 @@ function publicUser(user: UserWithAssignments) {
 export class UsersService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
+  listTeam() {
+    return this.prisma.user.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { displayName: "asc" },
+      select: { id: true, displayName: true },
+    });
+  }
+
   async list() {
     const users = await this.prisma.user.findMany({ include: userInclude, orderBy: [{ status: "asc" }, { displayName: "asc" }] });
     return users.map(publicUser);

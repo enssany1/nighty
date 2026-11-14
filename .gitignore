@@ -14,5 +14,8 @@ orchestration/quarantine/
 *.tmp
 *.log
 *.tsbuildinfo
+backups/
 apps/api/src/generated/
+apps/web/test-results/
+apps/web/playwright-report/
 

@@ -46,3 +46,13 @@ export class ProfileController {
     return this.users.updateProfile(request.auth!.user.id, body.displayName);
   }
 }
+
+@ApiTags("team")
+@ApiCookieAuth("nighty_session")
+@Controller("team")
+export class TeamController {
+  constructor(@Inject(UsersService) private readonly users: UsersService) {}
+
+  @Get()
+  list() { return this.users.listTeam(); }
+}

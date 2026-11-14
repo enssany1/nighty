@@ -26,11 +26,12 @@ export class OperationalDayService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async current() {
-    const day = await this.prisma.operationalDay.findFirst({
-      where: { retentionState: { not: "MARKED" } },
+    const active = await this.prisma.operationalDay.findFirst({
+      where: { retentionState: { not: "MARKED" }, shiftInstances: { some: { status: "ACTIVE" } } },
       orderBy: { operationalDate: "desc" },
       select: { id: true, operationalDate: true },
     });
+    const day = active ?? await this.prisma.operationalDay.findFirst({ where: { retentionState: { not: "MARKED" } }, orderBy: { operationalDate: "desc" }, select: { id: true, operationalDate: true } });
     if (!day) throw new BadRequestException("No operational day has been started");
     return { id: day.id, operationalDate: day.operationalDate.toISOString().slice(0, 10) };
   }

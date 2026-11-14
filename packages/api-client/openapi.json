@@ -15,6 +15,34 @@
         ]
       }
     },
+    "/api/health/live": {
+      "get": {
+        "operationId": "HealthController_live",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/health/ready": {
+      "get": {
+        "operationId": "HealthController_ready",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
         "operationId": "auth_login",
@@ -226,6 +254,25 @@
         ],
         "tags": [
           "profile"
+        ]
+      }
+    },
+    "/api/team": {
+      "get": {
+        "operationId": "TeamController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "team"
         ]
       }
     },

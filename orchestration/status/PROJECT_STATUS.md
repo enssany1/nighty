@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 15 November 2026, 01:45 +04
+**Updated:** 14 November 2026, 23:15 +04
 
-**Phase:** Production implementation (TASK-014 checkpoint)
+**Phase:** Production implementation ready for human acceptance (TASK-015 checkpoint)
 
-**State:** APPLICATION_IMPLEMENTATION_ACTIVE
+**State:** APPLICATION_READY_FOR_HUMAN_ACCEPTANCE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-014 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Fourteen of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-015 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. All 15 production tasks are checkpointed; repository policy reserves `COMPLETED` for the human owner after final diff/evidence review. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -93,6 +93,10 @@ TASK-014 added the selected administration sidebar, Back to operations, Users/Sh
 
 Checkpoint evidence: docs/implementation/TASK-014-CHECKPOINT.md.
 
+TASK-015 added real-browser accessibility/responsive/persistence coverage, hardened non-root images and reverse proxy, clean-volume bootstrap, live/readiness checks, CI, operations guidance, and digest-manifested backup/restore with isolated recovery drills.
+
+Checkpoint evidence: docs/implementation/TASK-015-CHECKPOINT.md.
+
 ## Correction of the previous status
 
 The previous revision of this file labeled ORCH-001 through ORCH-009 as "Completed and checkpointed" and described the missing DeepSeek credential as the only blocker. That was not supported by evidence. Those items were isolated, unit-tested primitives; no integrated foreground runner, independent review, or checkpoint had been exercised. `TASK_STATUS.json` has been corrected to match.
@@ -154,6 +158,9 @@ Two distinct things remain true:
 - `docker compose build api web`: exit 0.
 - `npm audit --omit=dev --audit-level=high`: exit 0, zero vulnerabilities.
 - `git diff --check`: exit 0.
+- `npm run test:integration -w @nighty/api`: exit 0, 27 tests.
+- `npm run test:e2e`: exit 0, 10 real-browser tests.
+- Empty-volume bootstrap, restart persistence, attachment-inclusive backup, and isolated restore drills: exit 0.
 - Git was supplied through the exact provided executable directory, not installed.
 
 ## Known limitations
@@ -167,4 +174,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-014 locally and begin TASK-015 accessibility, deployment, backup/restore, real-browser, and release gates. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Human owner reviews the final diff and validation evidence, then makes the repository-owned completion/readiness declaration. Continue to keep the orchestration runner inactive unless its remaining acceptance criteria are separately authorized and completed.

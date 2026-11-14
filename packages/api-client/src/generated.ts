@@ -271,6 +271,20 @@ export interface paths {
       response: unknown;
     };
   };
+  "/api/health/live": {
+    get: {
+      operationId: "HealthController_live";
+      request: unknown;
+      response: unknown;
+    };
+  };
+  "/api/health/ready": {
+    get: {
+      operationId: "HealthController_ready";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/operational-days/{date}/materialize": {
     post: {
       operationId: "OperationalDaysController_materialize";
@@ -439,6 +453,13 @@ export interface paths {
   "/api/tags/reorder": {
     post: {
       operationId: "TagsController_reorder";
+      request: unknown;
+      response: unknown;
+    };
+  };
+  "/api/team": {
+    get: {
+      operationId: "TeamController_list";
       request: unknown;
       response: unknown;
     };
