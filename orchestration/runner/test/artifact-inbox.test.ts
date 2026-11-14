@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { discoverArtifacts, publishArtifact } from "../src/artifact-inbox.ts";
+import {
+  discoverArtifacts,
+  publishArtifact,
+  quarantineArtifact,
+} from "../src/artifact-inbox.ts";
 
 function withDirectory(run: (directory: string) => void): void {
   const directory = mkdtempSync(path.join(tmpdir(), "nighty-inbox-"));
@@ -61,5 +65,45 @@ test("discovery ignores temporary hidden and unrecognized files", () => {
       writeFileSync(path.join(directory, name), name);
     }
     assert.deepEqual(discoverArtifacts(directory), ["TASK-001.md"]);
+  });
+});
+
+test("publication refuses an artifact above the configured size bound", () => {
+  withDirectory((directory) => {
+    assert.throws(
+      () => publishArtifact(directory, "TASK-001.md", "x".repeat(2048), () => undefined, {
+        maxBytes: 1024,
+      }),
+      /exceeds the 1024-byte limit/,
+    );
+    assert.deepEqual(readdirSync(directory), []);
+  });
+});
+
+test("conflicting artifacts are quarantined with digest metadata and removed from the inbox", () => {
+  withDirectory((directory) => {
+    const quarantine = path.join(directory, "quarantine");
+    const inbox = path.join(directory, "deliveries");
+    mkdirSync(inbox, { recursive: true });
+    writeFileSync(path.join(inbox, "TASK-901-A01-DELIVERY.md"), "conflicting");
+
+    const result = quarantineArtifact({
+      directory: inbox,
+      name: "TASK-901-A01-DELIVERY.md",
+      quarantineDirectory: quarantine,
+      reason: "delivery digest conflicts with recorded identity",
+      expectedDigest: "a".repeat(64),
+      actualDigest: "b".repeat(64),
+    });
+
+    assert.match(result.quarantinedPath, /\.quarantine$/);
+    assert.deepEqual(readdirSync(inbox), []);
+    const metadata = JSON.parse(readFileSync(result.metadataPath, "utf8")) as Record<string, unknown>;
+    assert.equal(metadata.schema, "nighty.quarantine/v1");
+    assert.equal(metadata.artifact, "TASK-901-A01-DELIVERY.md");
+    assert.equal(metadata.reason, "delivery digest conflicts with recorded identity");
+    assert.equal(metadata.expectedDigest, "a".repeat(64));
+    assert.equal(metadata.actualDigest, "b".repeat(64));
+    assert.equal(readFileSync(result.quarantinedPath, "utf8"), "conflicting");
   });
 });

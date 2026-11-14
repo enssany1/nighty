@@ -8,6 +8,7 @@ coverage/
 .superpowers/
 orchestration/status/*.db
 orchestration/status/*.db-*
+orchestration/status/codex-home-deepseek/
 orchestration/logs/
 orchestration/quarantine/
 *.tmp

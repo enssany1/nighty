@@ -1,30 +1,36 @@
 # Nighty orchestration runner foundation
 
-This directory contains the tested safety foundation for the local Codex/DeepSeek workflow.
+This directory contains the safety foundation for the local Codex/DeepSeek workflow. It is **not activated** and no ORCH plan task is independently accepted yet. See `orchestration/status/PROJECT_STATUS.md`.
 
-Implemented boundaries:
+## Implemented and unit-tested
 
-- Markdown artifact identity and required-section validation.
-- Atomic same-directory publication with SHA-256 conflict detection.
-- SQLite task state with compare-and-swap transitions and one active task.
-- Bounded allowlisted child processes with timeout, stdin, and output limits.
-- Schema-constrained Codex controller invocation.
-- Isolated DeepSeek provider configuration using DEEPSEEK_API_KEY; the key is never written to configuration.
-- Git baseline/approval digest gates.
-- Named immutable verification commands.
-- Fail-closed restart decisions.
+- Bounded, strict-UTF-8 control-artifact reads with size limits and reparse-point rejection.
+- Markdown front-matter/section parsing; Markdown and agent output are treated as untrusted data.
+- Locally validated, tightened task/delivery/review JSON schemas.
+- Atomic same-directory publication with SHA-256 conflict detection and conflict quarantine.
+- SQLite task state with compare-and-swap transitions, revision identity, attempts, runs, leases, and ownership retained through APPROVED, CHECKPOINTED, and HUMAN_REVIEW.
+- Bounded allowlisted child processes with timeout, stdin, output limits, and Windows process-family cleanup with owned PID evidence.
+- Provider root ownership persisted on the RUNNING run and live lease at process start; ownership failure terminates the family.
+- Owned descendant tracking while the root is alive, with bounded evidenced cleanup after normal exit as well as timeout or output overflow.
+- Schema-constrained Codex controller invocation with prompt/schema/output bounds and project-contained output/schema paths.
+- Isolated, runner-owned DeepSeek `CODEX_HOME`; the credential is only read from the execution environment and is never written to configuration.
+- Git baseline, source/tree inventory, exact task-content SHA-256, and approval-integrity gates immediately before checkpoint.
+- Named immutable verification commands with sealing and fail-closed finalization.
+- Fail-closed restart/recovery decisions that never validate an artifact while its owned producer may still be alive.
+- Foreground reconciler covering crash gaps, duplicate artifacts, conflict quarantine, review ingestion, and injected development/review producers.
 
-Run npm run check from the repository root.
+## Git executable
 
-## Current activation blocker
+The runner invokes Git from `PATH` by default. Set `NIGHTY_GIT_EXECUTABLE` to an absolute Git executable when PATH does not expose one, for example on this machine:
 
-No DeepSeek credential exists at process, user, or machine scope. The runner must not substitute another provider. Once the human owner supplies DEEPSEEK_API_KEY through an approved transient environment, the remaining disposable pilot must verify:
+```text
+C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1112-611-0_26.1112.611.0_x64__3k8sg7r9htsxt\dependencies\native\git\cmd\git.exe
+```
 
-1. isolated CODEX_HOME;
-2. DeepSeek provider/model identity;
-3. an in-scope test-first edit in a disposable repository;
-4. denial of out-of-root edits and unregistered commands;
-5. delivery report identity versus the actual Git diff;
-6. credential absence from files, logs, command arguments, and Git.
+## Verification
 
-Only after that pilot passes may Nighty application TASK-001 begin.
+Run `npm run check` from the repository root. The Git-backed tests require the configured Git executable to be available. A live provider run is not part of this foundation and has not been performed.
+
+## Activation status
+
+No live DeepSeek or Codex review invocation has been run. The missing credential is not the only blocker: ORCH-005, ORCH-007, ORCH-008, ORCH-009, and ORCH-010 still have unexercised acceptance criteria. Only the human owner may authorize a disposable pilot or Nighty application TASK-001.

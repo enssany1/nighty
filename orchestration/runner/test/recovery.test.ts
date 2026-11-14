@@ -47,3 +47,53 @@ test("reviewer failure preserves delivery and retries review", () => {
     artifact: { digest: "a".repeat(64), recordedDigest: "a".repeat(64) },
   }), { action: "RETRY_REVIEW", reason: "delivery is preserved and reviewer lease expired" });
 });
+
+test("a delivery artifact is never validated while its producer is still alive", () => {
+  assert.deepEqual(decideRecovery({
+    state: "IN_DEVELOPMENT",
+    leaseExpired: true,
+    ownedProcessAlive: true,
+    artifact: { digest: "a".repeat(64), recordedDigest: null },
+  }), { action: "WAIT", reason: "owned process is still alive after lease expiry" });
+});
+
+test("a live descendant blocks validation even when the producer root exited", () => {
+  assert.deepEqual(decideRecovery({
+    state: "IN_DEVELOPMENT",
+    leaseExpired: true,
+    ownedProcessAlive: false,
+    producerDescendantAlive: true,
+    artifact: { digest: "a".repeat(64), recordedDigest: null },
+  }), { action: "WAIT", reason: "an owned producer descendant is still alive" });
+});
+
+test("a delivery recorded before a crash advances without duplicate validation", () => {
+  assert.deepEqual(decideRecovery({
+    state: "IN_DEVELOPMENT",
+    leaseExpired: true,
+    ownedProcessAlive: false,
+    artifact: { digest: "a".repeat(64), recordedDigest: "a".repeat(64) },
+  }), {
+    action: "ADVANCE_DELIVERY",
+    reason: "delivery is recorded but state has not advanced",
+  });
+});
+
+test("human review state never silently releases ownership", () => {
+  assert.deepEqual(decideRecovery({
+    state: "HUMAN_REVIEW",
+    leaseExpired: true,
+    ownedProcessAlive: false,
+    artifact: { digest: "a".repeat(64), recordedDigest: "a".repeat(64) },
+  }), { action: "WAIT", reason: "task is waiting for human review" });
+});
+
+test("exhausted corrections require human direction instead of another run", () => {
+  assert.deepEqual(decideRecovery({
+    state: "CHANGES_REQUIRED",
+    leaseExpired: true,
+    ownedProcessAlive: false,
+    correctionsExhausted: true,
+    artifact: { digest: "a".repeat(64), recordedDigest: "a".repeat(64) },
+  }), { action: "HUMAN_REVIEW", reason: "correction attempts exhausted" });
+});

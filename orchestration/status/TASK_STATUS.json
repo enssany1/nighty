@@ -1,19 +1,133 @@
 {
   "schema": "nighty.task-status/v1",
-  "generatedAt": "2026-11-14T18:50:00+04:00",
-  "projectState": "BLOCKED_EXTERNAL_DEPENDENCY",
+  "generatedAt": "2026-11-14T20:58:00+04:00",
+  "projectState": "ORCHESTRATION_ACCEPTANCE_PENDING",
   "activeTaskId": null,
   "runnerOwner": null,
+  "acceptedPlanTasks": 0,
+  "plannedTasks": 10,
   "tasks": [
-    { "taskId": "ORCH-001", "state": "CHECKPOINTED" },
-    { "taskId": "ORCH-002", "state": "CHECKPOINTED" },
-    { "taskId": "ORCH-003", "state": "CHECKPOINTED" },
-    { "taskId": "ORCH-004", "state": "CHECKPOINTED" },
-    { "taskId": "ORCH-005", "state": "CHECKPOINTED" },
-    { "taskId": "ORCH-006", "state": "BLOCKED", "reason": "DEEPSEEK_API_KEY unavailable; live provider pilot not run" },
-    { "taskId": "ORCH-007", "state": "CHECKPOINTED" },
-    { "taskId": "ORCH-008", "state": "CHECKPOINTED" },
-    { "taskId": "ORCH-009", "state": "CHECKPOINTED" },
-    { "taskId": "ORCH-010", "state": "BLOCKED", "reason": "depends on live ORCH-006 DeepSeek pilot" }
+    {
+      "taskId": "ORCH-001",
+      "state": "IMPLEMENTED_NOT_ACCEPTED",
+      "accepted": false,
+      "remainingAcceptance": [
+        "complete deterministic valid/invalid fixture matrix",
+        "explicit never-overwrite proof",
+        "no-agent-invocation evidence"
+      ]
+    },
+    {
+      "taskId": "ORCH-002",
+      "state": "IMPLEMENTED_NOT_ACCEPTED",
+      "accepted": false,
+      "remainingAcceptance": [
+        "restart preservation across a reopened database",
+        "generated status projections",
+        "integrated concurrent owner and lease evidence"
+      ]
+    },
+    {
+      "taskId": "ORCH-003",
+      "state": "IMPLEMENTED_NOT_ACCEPTED",
+      "accepted": false,
+      "remainingAcceptance": [
+        "filesystem watcher wakeups",
+        "30-second full polling loop",
+        "partial-file and rename-race acceptance run",
+        "foreground conflict quarantine run"
+      ]
+    },
+    {
+      "taskId": "ORCH-004",
+      "state": "IMPLEMENTED_NOT_ACCEPTED",
+      "accepted": false,
+      "remainingAcceptance": [
+        "runner-crash cleanup test",
+        "cleanup-failure retry path",
+        "late-output case",
+        "heartbeat wired through production dispatch"
+      ]
+    },
+    {
+      "taskId": "ORCH-005",
+      "state": "IMPLEMENTED_NOT_ACCEPTED",
+      "accepted": false,
+      "remainingAcceptance": [
+        "disposable real Codex task and review invocation",
+        "auth-failure behavior",
+        "real review evidence capture"
+      ]
+    },
+    {
+      "taskId": "ORCH-006",
+      "state": "PARTIALLY_IMPLEMENTED_BLOCKED",
+      "accepted": false,
+      "blockedReason": "live DeepSeek pilot not run; requires approved harness, credential, and disposable-run approval",
+      "remainingAcceptance": [
+        "live DeepSeek disposable pilot",
+        "model identity proof",
+        "out-of-root edit and unregistered-command denial",
+        "secret-absence scan after a live run"
+      ]
+    },
+    {
+      "taskId": "ORCH-007",
+      "state": "IMPLEMENTED_NOT_ACCEPTED",
+      "accepted": false,
+      "remainingAcceptance": [
+        "actual checkpoint commit creation by the authorized reviewer process",
+        "commit-failure handling",
+        "pre-existing-branch and dirty-baseline acceptance run"
+      ]
+    },
+    {
+      "taskId": "ORCH-008",
+      "state": "IMPLEMENTED_NOT_ACCEPTED",
+      "accepted": false,
+      "remainingAcceptance": [
+        "delivery-report-versus-actual-result comparison",
+        "argument-injection regression",
+        "integrated allowlist non-expansion proof"
+      ]
+    },
+    {
+      "taskId": "ORCH-009",
+      "state": "PARTIALLY_IMPLEMENTED",
+      "accepted": false,
+      "remainingAcceptance": [
+        "full fault-injection and restart matrix",
+        "correction-limit integration",
+        "end-to-end no-duplicate-checkpoint proof"
+      ]
+    },
+    {
+      "taskId": "ORCH-010",
+      "state": "NOT_STARTED_BLOCKED",
+      "accepted": false,
+      "blockedReason": "depends on accepted ORCH tasks and explicit pilot approval",
+      "remainingAcceptance": [
+        "foreground pilot with human observation",
+        "artifact, state, log, and secret review",
+        "explicit activation decision"
+      ]
+    },
+    {
+      "taskId": "TASK-901",
+      "revision": 1,
+      "attempt": "A03",
+      "state": "CHECKPOINTED",
+      "accepted": true,
+      "reviewPending": false,
+      "delivery": "orchestration/deliveries/TASK-901-A03-DELIVERY.md",
+      "review": "orchestration/reviews/TASK-901-A03-REVIEW.md",
+      "previousAttempt": {
+        "attempt": "A02",
+        "reviewDecision": "CHANGES_REQUIRED",
+        "review": "orchestration/reviews/TASK-901-A02-REVIEW.md",
+        "delivery": "orchestration/deliveries/TASK-901-A02-DELIVERY.md"
+      },
+      "remainingAcceptance": []
+    }
   ]
 }
