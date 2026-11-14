@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+.worktrees/
+.superpowers/
+orchestration/status/*.db
+orchestration/status/*.db-*
+orchestration/logs/
+orchestration/quarantine/
+*.tmp
+*.log
+
