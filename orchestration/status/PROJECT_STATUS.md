@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 14 November 2026, 23:25 +04
+**Updated:** 14 November 2026, 23:45 +04
 
-**Phase:** Production implementation (TASK-009 checkpoint)
+**Phase:** Production implementation (TASK-010 checkpoint)
 
 **State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-009 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Nine of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-010 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Ten of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -72,6 +72,10 @@ Checkpoint evidence: docs/implementation/TASK-008-CHECKPOINT.md.
 TASK-009 added newest-first Tag whiteboards, safe rename/reorder/archive/delete invariants, random-key local storage, server-owned MIME detection, inline image disposition, authenticated digest-checked downloads, and adversarial upload coverage.
 
 Checkpoint evidence: docs/implementation/TASK-009-CHECKPOINT.md.
+
+TASK-010 added typed General/Security/Retention settings, approved defaults, administrator-only mutation, centralized before/after audit writing with request/session metadata, and immutable filtered Audit reads.
+
+Checkpoint evidence: docs/implementation/TASK-010-CHECKPOINT.md.
 
 ## Correction of the previous status
 
@@ -147,4 +151,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-009 locally and begin TASK-010 Settings and immutable Audit. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Checkpoint TASK-010 locally and begin TASK-011 search and safe retention cleanup. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.

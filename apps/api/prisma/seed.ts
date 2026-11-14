@@ -134,7 +134,13 @@ async function main(): Promise<void> {
     data: [
       { key: "retentionDays", value: 365, updatedByUserId: ids.aisha },
       { key: "sessionIdleMinutes", value: 30, updatedByUserId: ids.aisha },
-      { key: "productName", value: "Nighty", updatedByUserId: ids.aisha }
+      { key: "productName", value: "Nighty", updatedByUserId: ids.aisha },
+      { key: "subtitle", value: "Shift Operations Handover", updatedByUserId: ids.aisha },
+      { key: "timezone", value: "Asia/Muscat", updatedByUserId: ids.aisha },
+      { key: "dateFormat", value: "DD MMM YYYY", updatedByUserId: ids.aisha },
+      { key: "timeFormat", value: "24-hour", updatedByUserId: ids.aisha },
+      { key: "defaultLanding", value: "current-operational-day", updatedByUserId: ids.aisha },
+      { key: "passwordMinLength", value: 12, updatedByUserId: ids.aisha }
     ],
     skipDuplicates: true
   });

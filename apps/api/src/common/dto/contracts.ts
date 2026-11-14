@@ -4,6 +4,8 @@ import {
   IsBoolean,
   IsDateString,
   IsEnum,
+  Equals,
+  IsIn,
   IsInt,
   IsObject,
   IsOptional,
@@ -212,6 +214,24 @@ export class SettingResponseDto {
   @ApiProperty({ type: String, format: "date-time" }) @IsDateString() updatedAt!: string;
 }
 
+export class GeneralSettingsRequestDto {
+  @ApiProperty({ type: String }) @IsString() @Length(1, 80) applicationName!: string;
+  @ApiProperty({ type: String }) @IsString() @Length(1, 160) subtitle!: string;
+  @ApiProperty({ type: String }) @IsString() @Length(1, 80) timezone!: string;
+  @ApiProperty({ type: String }) @IsString() @Length(1, 40) dateFormat!: string;
+  @ApiProperty({ enum: ["12-hour", "24-hour"] }) @IsIn(["12-hour", "24-hour"]) timeFormat!: "12-hour" | "24-hour";
+  @ApiProperty({ enum: ["current-operational-day"] }) @Equals("current-operational-day") defaultLanding!: "current-operational-day";
+}
+
+export class SecuritySettingsRequestDto {
+  @ApiProperty({ type: Number, enum: [30] }) @Equals(30) sessionIdleMinutes!: 30;
+  @ApiProperty({ type: Number, minimum: 8, maximum: 128 }) @IsInt() @Min(8) @Max(128) passwordMinLength!: number;
+}
+
+export class RetentionSettingsRequestDto {
+  @ApiProperty({ type: Number, minimum: 1, maximum: 3650 }) @IsInt() @Min(1) @Max(3650) retentionDays!: number;
+}
+
 export class AuditEventResponseDto {
   @ApiProperty({ type: String, format: "uuid" }) @IsUUID() id!: string;
   @ApiPropertyOptional({ type: String, format: "uuid" }) @IsOptional() @IsUUID() actorUserId?: string;
@@ -220,6 +240,7 @@ export class AuditEventResponseDto {
   @ApiProperty({ type: String }) @IsString() entityId!: string;
   @ApiPropertyOptional({ type: "object", additionalProperties: true }) @IsOptional() before?: unknown;
   @ApiPropertyOptional({ type: "object", additionalProperties: true }) @IsOptional() after?: unknown;
+  @ApiPropertyOptional({ type: "object", additionalProperties: true }) @IsOptional() metadata?: unknown;
   @ApiProperty({ type: String, format: "date-time" }) @IsDateString() createdAt!: string;
 }
 
@@ -230,5 +251,6 @@ export const NIGHTY_OPENAPI_MODELS = [
   EntryResponseDto, CreateEntryRequestDto, ToggleTodoRequestDto, ShiftCanvasDto, CanvasResponseDto,
   HandoverResponseDto, UpdateFollowStatusRequestDto, TagResponseDto, SaveTagRequestDto,
   UpdateTagRequestDto, ReorderTagsRequestDto, CreateTagPostRequestDto, AttachmentResponseDto,
-  SearchResultDto, SearchResponseDto, SettingResponseDto, AuditEventResponseDto,
+  SearchResultDto, SearchResponseDto, SettingResponseDto, GeneralSettingsRequestDto,
+  SecuritySettingsRequestDto, RetentionSettingsRequestDto, AuditEventResponseDto,
 ] as const;

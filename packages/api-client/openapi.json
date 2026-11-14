@@ -663,6 +663,84 @@
         ]
       }
     },
+    "/api/audit": {
+      "get": {
+        "operationId": "audit_list",
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditEventResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settings": {
+      "get": {
+        "operationId": "SettingsController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Settings"
+        ]
+      }
+    },
+    "/api/settings/general": {
+      "patch": {
+        "operationId": "SettingsController_updateGeneral",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Settings"
+        ]
+      }
+    },
+    "/api/settings/security": {
+      "patch": {
+        "operationId": "SettingsController_updateSecurity",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Settings"
+        ]
+      }
+    },
+    "/api/settings/retention": {
+      "patch": {
+        "operationId": "SettingsController_updateRetention",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Settings"
+        ]
+      }
+    },
     "/api/canvas/{operationalDate}": {
       "get": {
         "operationId": "canvas_get",
@@ -744,28 +822,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SettingResponseDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/audit": {
-      "get": {
-        "operationId": "audit_list",
-        "security": [
-          {
-            "nighty_session": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuditEventResponseDto"
                 }
               }
             }
@@ -1482,6 +1538,77 @@
           "updatedAt"
         ]
       },
+      "GeneralSettingsRequestDto": {
+        "type": "object",
+        "properties": {
+          "applicationName": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "dateFormat": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "string",
+            "enum": [
+              "12-hour",
+              "24-hour"
+            ]
+          },
+          "defaultLanding": {
+            "type": "string",
+            "enum": [
+              "current-operational-day"
+            ]
+          }
+        },
+        "required": [
+          "applicationName",
+          "subtitle",
+          "timezone",
+          "dateFormat",
+          "timeFormat",
+          "defaultLanding"
+        ]
+      },
+      "SecuritySettingsRequestDto": {
+        "type": "object",
+        "properties": {
+          "sessionIdleMinutes": {
+            "type": "number",
+            "enum": [
+              30
+            ]
+          },
+          "passwordMinLength": {
+            "type": "number",
+            "minimum": 8,
+            "maximum": 128
+          }
+        },
+        "required": [
+          "sessionIdleMinutes",
+          "passwordMinLength"
+        ]
+      },
+      "RetentionSettingsRequestDto": {
+        "type": "object",
+        "properties": {
+          "retentionDays": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 3650
+          }
+        },
+        "required": [
+          "retentionDays"
+        ]
+      },
       "AuditEventResponseDto": {
         "type": "object",
         "properties": {
@@ -1507,6 +1634,10 @@
             "additionalProperties": true
           },
           "after": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "metadata": {
             "type": "object",
             "additionalProperties": true
           },

@@ -17,6 +17,7 @@ export interface components {
       "entityId": string;
       "before"?: Record<string, unknown>;
       "after"?: Record<string, unknown>;
+      "metadata"?: Record<string, unknown>;
       "createdAt": string;
     };
     "CanvasResponseDto": {
@@ -54,6 +55,14 @@ export interface components {
       "authorId": string;
       "createdAt": string;
     };
+    "GeneralSettingsRequestDto": {
+      "applicationName": string;
+      "subtitle": string;
+      "timezone": string;
+      "dateFormat": string;
+      "timeFormat": "12-hour" | "24-hour";
+      "defaultLanding": "current-operational-day";
+    };
     "HandoverResponseDto": {
       "closedShiftId": string;
       "openedShiftId": string;
@@ -69,6 +78,9 @@ export interface components {
     };
     "ReorderTagsRequestDto": {
       "tagIds": Array<string>;
+    };
+    "RetentionSettingsRequestDto": {
+      "retentionDays": number;
     };
     "SaveShiftDefinitionRequestDto": {
       "name": string;
@@ -89,6 +101,10 @@ export interface components {
       "shiftName": string;
       "type": "UPDATE" | "TODO" | "FOLLOW";
       "plainText": string;
+    };
+    "SecuritySettingsRequestDto": {
+      "sessionIdleMinutes": 30;
+      "passwordMinLength": number;
     };
     "SessionResponseDto": {
       "userId": string;
@@ -281,11 +297,39 @@ export interface paths {
       response: components["schemas"]["SearchResponseDto"];
     };
   };
+  "/api/settings": {
+    get: {
+      operationId: "SettingsController_getAll";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/settings/{key}": {
     get: {
       operationId: "settings_get";
       request: unknown;
       response: components["schemas"]["SettingResponseDto"];
+    };
+  };
+  "/api/settings/general": {
+    patch: {
+      operationId: "SettingsController_updateGeneral";
+      request: unknown;
+      response: unknown;
+    };
+  };
+  "/api/settings/retention": {
+    patch: {
+      operationId: "SettingsController_updateRetention";
+      request: unknown;
+      response: unknown;
+    };
+  };
+  "/api/settings/security": {
+    patch: {
+      operationId: "SettingsController_updateSecurity";
+      request: unknown;
+      response: unknown;
     };
   };
   "/api/shift-instances/{id}/handover": {
@@ -421,14 +465,17 @@ export type CreateEntryRequestDto = components["schemas"]["CreateEntryRequestDto
 export type CreateTagPostRequestDto = components["schemas"]["CreateTagPostRequestDto"];
 export type CreateUserRequestDto = components["schemas"]["CreateUserRequestDto"];
 export type EntryResponseDto = components["schemas"]["EntryResponseDto"];
+export type GeneralSettingsRequestDto = components["schemas"]["GeneralSettingsRequestDto"];
 export type HandoverResponseDto = components["schemas"]["HandoverResponseDto"];
 export type LoginRequestDto = components["schemas"]["LoginRequestDto"];
 export type ReorderShiftsRequestDto = components["schemas"]["ReorderShiftsRequestDto"];
 export type ReorderTagsRequestDto = components["schemas"]["ReorderTagsRequestDto"];
+export type RetentionSettingsRequestDto = components["schemas"]["RetentionSettingsRequestDto"];
 export type SaveShiftDefinitionRequestDto = components["schemas"]["SaveShiftDefinitionRequestDto"];
 export type SaveTagRequestDto = components["schemas"]["SaveTagRequestDto"];
 export type SearchResponseDto = components["schemas"]["SearchResponseDto"];
 export type SearchResultDto = components["schemas"]["SearchResultDto"];
+export type SecuritySettingsRequestDto = components["schemas"]["SecuritySettingsRequestDto"];
 export type SessionResponseDto = components["schemas"]["SessionResponseDto"];
 export type SettingResponseDto = components["schemas"]["SettingResponseDto"];
 export type ShiftCanvasDto = components["schemas"]["ShiftCanvasDto"];

@@ -283,6 +283,7 @@ model AuditEvent {
   entityId    String   @db.VarChar(160)
   before      Json?
   after       Json?
+  metadata    Json?
   createdAt   DateTime @default(now()) @db.Timestamptz(3)
   actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
 
