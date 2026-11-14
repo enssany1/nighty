@@ -35,6 +35,9 @@ export interface components {
       "todoItems"?: Array<components["schemas"]["TodoItemDto"]>;
       "tagIds"?: Array<string>;
     };
+    "CreateTagPostRequestDto": {
+      "editorDocument": Record<string, unknown>;
+    };
     "CreateUserRequestDto": {
       "username": string;
       "displayName": string;
@@ -63,6 +66,9 @@ export interface components {
     };
     "ReorderShiftsRequestDto": {
       "shiftIds": Array<string>;
+    };
+    "ReorderTagsRequestDto": {
+      "tagIds": Array<string>;
     };
     "SaveShiftDefinitionRequestDto": {
       "name": string;
@@ -135,6 +141,10 @@ export interface components {
     "UpdateProfileRequestDto": {
       "displayName": string;
     };
+    "UpdateTagRequestDto": {
+      "name"?: string;
+      "archived"?: boolean;
+    };
     "UpdateUserRequestDto": {
       "displayName"?: string;
       "role"?: "ADMIN" | "OPERATOR";
@@ -159,6 +169,13 @@ export interface paths {
       operationId: "attachments_create";
       request: unknown;
       response: components["schemas"]["AttachmentResponseDto"];
+    };
+  };
+  "/api/attachments/{id}/download": {
+    get: {
+      operationId: "AttachmentsController_download";
+      request: unknown;
+      response: unknown;
     };
   };
   "/api/audit": {
@@ -330,6 +347,37 @@ export interface paths {
       response: components["schemas"]["TagResponseDto"];
     };
   };
+  "/api/tags/{id}": {
+    patch: {
+      operationId: "TagsController_update";
+      request: unknown;
+      response: unknown;
+    };
+    delete: {
+      operationId: "TagsController_delete";
+      request: unknown;
+      response: unknown;
+    };
+  };
+  "/api/tags/{id}/posts": {
+    get: {
+      operationId: "TagsController_posts";
+      request: unknown;
+      response: unknown;
+    };
+    post: {
+      operationId: "TagsController_createPost";
+      request: unknown;
+      response: unknown;
+    };
+  };
+  "/api/tags/reorder": {
+    post: {
+      operationId: "TagsController_reorder";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/todo-items/{id}": {
     patch: {
       operationId: "EntriesController_toggle";
@@ -370,11 +418,13 @@ export type AuditEventResponseDto = components["schemas"]["AuditEventResponseDto
 export type CanvasResponseDto = components["schemas"]["CanvasResponseDto"];
 export type ChangePasswordRequestDto = components["schemas"]["ChangePasswordRequestDto"];
 export type CreateEntryRequestDto = components["schemas"]["CreateEntryRequestDto"];
+export type CreateTagPostRequestDto = components["schemas"]["CreateTagPostRequestDto"];
 export type CreateUserRequestDto = components["schemas"]["CreateUserRequestDto"];
 export type EntryResponseDto = components["schemas"]["EntryResponseDto"];
 export type HandoverResponseDto = components["schemas"]["HandoverResponseDto"];
 export type LoginRequestDto = components["schemas"]["LoginRequestDto"];
 export type ReorderShiftsRequestDto = components["schemas"]["ReorderShiftsRequestDto"];
+export type ReorderTagsRequestDto = components["schemas"]["ReorderTagsRequestDto"];
 export type SaveShiftDefinitionRequestDto = components["schemas"]["SaveShiftDefinitionRequestDto"];
 export type SaveTagRequestDto = components["schemas"]["SaveTagRequestDto"];
 export type SearchResponseDto = components["schemas"]["SearchResponseDto"];
@@ -389,5 +439,6 @@ export type TodoItemDto = components["schemas"]["TodoItemDto"];
 export type ToggleTodoRequestDto = components["schemas"]["ToggleTodoRequestDto"];
 export type UpdateFollowStatusRequestDto = components["schemas"]["UpdateFollowStatusRequestDto"];
 export type UpdateProfileRequestDto = components["schemas"]["UpdateProfileRequestDto"];
+export type UpdateTagRequestDto = components["schemas"]["UpdateTagRequestDto"];
 export type UpdateUserRequestDto = components["schemas"]["UpdateUserRequestDto"];
 export type UserResponseDto = components["schemas"]["UserResponseDto"];

@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 14 November 2026, 23:05 +04
+**Updated:** 14 November 2026, 23:25 +04
 
-**Phase:** Production implementation (TASK-008 checkpoint)
+**Phase:** Production implementation (TASK-009 checkpoint)
 
 **State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-008 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Eight of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-009 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Nine of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -68,6 +68,10 @@ Checkpoint evidence: docs/implementation/TASK-007-CHECKPOINT.md.
 TASK-008 added clock-independent serializable Handover, concurrent idempotency, exactly-once Follow transfer, next-day rollover, incoming Follow projection, and accountable Follow completion.
 
 Checkpoint evidence: docs/implementation/TASK-008-CHECKPOINT.md.
+
+TASK-009 added newest-first Tag whiteboards, safe rename/reorder/archive/delete invariants, random-key local storage, server-owned MIME detection, inline image disposition, authenticated digest-checked downloads, and adversarial upload coverage.
+
+Checkpoint evidence: docs/implementation/TASK-009-CHECKPOINT.md.
 
 ## Correction of the previous status
 
@@ -143,4 +147,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-008 locally and begin TASK-009 Tags, inline images, and attachments. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Checkpoint TASK-009 locally and begin TASK-010 Settings and immutable Audit. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.

@@ -484,50 +484,6 @@
         ]
       }
     },
-    "/api/canvas/{operationalDate}": {
-      "get": {
-        "operationId": "canvas_get",
-        "security": [
-          {
-            "nighty_session": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CanvasResponseDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/shift-instances/{shiftId}/handover": {
-      "post": {
-        "operationId": "handover_complete",
-        "security": [
-          {
-            "nighty_session": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HandoverResponseDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/tags": {
       "get": {
         "operationId": "tags_list",
@@ -580,6 +536,97 @@
         }
       }
     },
+    "/api/tags/{id}": {
+      "patch": {
+        "operationId": "TagsController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "tags"
+        ]
+      },
+      "delete": {
+        "operationId": "TagsController_delete",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "tags"
+        ]
+      }
+    },
+    "/api/tags/reorder": {
+      "post": {
+        "operationId": "TagsController_reorder",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "tags"
+        ]
+      }
+    },
+    "/api/tags/{id}/posts": {
+      "get": {
+        "operationId": "TagsController_posts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "tags"
+        ]
+      },
+      "post": {
+        "operationId": "TagsController_createPost",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "tags"
+        ]
+      }
+    },
     "/api/attachments": {
       "post": {
         "operationId": "attachments_create",
@@ -595,6 +642,64 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AttachmentResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/attachments/{id}/download": {
+      "get": {
+        "operationId": "AttachmentsController_download",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Attachments"
+        ]
+      }
+    },
+    "/api/canvas/{operationalDate}": {
+      "get": {
+        "operationId": "canvas_get",
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CanvasResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shift-instances/{shiftId}/handover": {
+      "post": {
+        "operationId": "handover_complete",
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoverResponseDto"
                 }
               }
             }
@@ -1228,6 +1333,44 @@
         },
         "required": [
           "name"
+        ]
+      },
+      "UpdateTagRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReorderTagsRequestDto": {
+        "type": "object",
+        "properties": {
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "tagIds"
+        ]
+      },
+      "CreateTagPostRequestDto": {
+        "type": "object",
+        "properties": {
+          "editorDocument": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "editorDocument"
         ]
       },
       "AttachmentResponseDto": {

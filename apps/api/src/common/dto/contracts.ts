@@ -171,6 +171,19 @@ export class SaveTagRequestDto {
   @ApiProperty({ type: String }) @Matches(/^[a-z0-9][a-z0-9-]{0,79}$/) name!: string;
 }
 
+export class UpdateTagRequestDto {
+  @ApiPropertyOptional({ type: String }) @IsOptional() @IsString() @Length(1, 80) name?: string;
+  @ApiPropertyOptional({ type: Boolean }) @IsOptional() @IsBoolean() archived?: boolean;
+}
+
+export class ReorderTagsRequestDto {
+  @ApiProperty({ type: [String], format: "uuid" }) @IsArray() @IsUUID("4", { each: true }) tagIds!: string[];
+}
+
+export class CreateTagPostRequestDto {
+  @ApiProperty({ type: "object", additionalProperties: true }) @IsObject() editorDocument!: Record<string, unknown>;
+}
+
 export class AttachmentResponseDto {
   @ApiProperty({ type: String, format: "uuid" }) @IsUUID() id!: string;
   @ApiProperty({ type: String }) @IsString() originalName!: string;
@@ -215,6 +228,7 @@ export const NIGHTY_OPENAPI_MODELS = [
   UpdateUserRequestDto, UpdateProfileRequestDto, TemporaryPasswordResponseDto,
   ShiftDefinitionResponseDto, SaveShiftDefinitionRequestDto, ReorderShiftsRequestDto, TodoItemDto,
   EntryResponseDto, CreateEntryRequestDto, ToggleTodoRequestDto, ShiftCanvasDto, CanvasResponseDto,
-  HandoverResponseDto, UpdateFollowStatusRequestDto, TagResponseDto, SaveTagRequestDto, AttachmentResponseDto,
+  HandoverResponseDto, UpdateFollowStatusRequestDto, TagResponseDto, SaveTagRequestDto,
+  UpdateTagRequestDto, ReorderTagsRequestDto, CreateTagPostRequestDto, AttachmentResponseDto,
   SearchResultDto, SearchResponseDto, SettingResponseDto, AuditEventResponseDto,
 ] as const;

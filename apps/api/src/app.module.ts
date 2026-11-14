@@ -5,9 +5,11 @@ import { HealthController } from "./health/health.controller";
 import { UsersModule } from "./users/users.module";
 import { ShiftsModule } from "./shifts/shifts.module";
 import { EntriesModule } from "./entries/entries.module";
+import { TagsModule } from "./tags/tags.module";
+import { AttachmentsModule } from "./attachments/attachments.module";
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UsersModule, ShiftsModule, EntriesModule],
+  imports: [DatabaseModule, AuthModule, UsersModule, ShiftsModule, EntriesModule, TagsModule, AttachmentsModule],
   controllers: [HealthController]
 })
 export class AppModule {}
