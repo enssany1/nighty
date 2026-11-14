@@ -7,8 +7,8 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "test": "node --test orchestration/runner/test/*.test.ts",
-    "test:orchestration": "node --test orchestration/runner/test/*.test.ts",
+    "test": "node --disable-warning=ExperimentalWarning --test orchestration/runner/test/*.test.ts",
+    "test:orchestration": "node --disable-warning=ExperimentalWarning --test orchestration/runner/test/*.test.ts",
     "typecheck": "tsc -p orchestration/runner/tsconfig.json --noEmit"
   },
   "devDependencies": {
