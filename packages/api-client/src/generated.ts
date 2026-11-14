@@ -126,6 +126,9 @@ export interface components {
       "completed"?: boolean;
       "position": number;
     };
+    "ToggleTodoRequestDto": {
+      "completed": boolean;
+    };
     "UpdateProfileRequestDto": {
       "displayName": string;
     };
@@ -190,11 +193,32 @@ export interface paths {
       response: components["schemas"]["SessionResponseDto"];
     };
   };
+  "/api/canvas/{date}": {
+    get: {
+      operationId: "EntriesController_getCanvas";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/canvas/{operationalDate}": {
     get: {
       operationId: "canvas_get";
       request: unknown;
       response: components["schemas"]["CanvasResponseDto"];
+    };
+  };
+  "/api/entries/{id}": {
+    patch: {
+      operationId: "EntriesController_edit";
+      request: unknown;
+      response: unknown;
+    };
+  };
+  "/api/entries/{id}/history": {
+    get: {
+      operationId: "EntriesController_history";
+      request: unknown;
+      response: unknown;
     };
   };
   "/api/health": {
@@ -289,6 +313,13 @@ export interface paths {
       response: components["schemas"]["TagResponseDto"];
     };
   };
+  "/api/todo-items/{id}": {
+    patch: {
+      operationId: "EntriesController_toggle";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/users": {
     get: {
       operationId: "users_list";
@@ -338,6 +369,7 @@ export type ShiftDefinitionResponseDto = components["schemas"]["ShiftDefinitionR
 export type TagResponseDto = components["schemas"]["TagResponseDto"];
 export type TemporaryPasswordResponseDto = components["schemas"]["TemporaryPasswordResponseDto"];
 export type TodoItemDto = components["schemas"]["TodoItemDto"];
+export type ToggleTodoRequestDto = components["schemas"]["ToggleTodoRequestDto"];
 export type UpdateProfileRequestDto = components["schemas"]["UpdateProfileRequestDto"];
 export type UpdateUserRequestDto = components["schemas"]["UpdateUserRequestDto"];
 export type UserResponseDto = components["schemas"]["UserResponseDto"];

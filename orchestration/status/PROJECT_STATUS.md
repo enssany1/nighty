@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 14 November 2026, 22:25 +04
+**Updated:** 14 November 2026, 22:45 +04
 
-**Phase:** Production implementation (TASK-006 checkpoint)
+**Phase:** Production implementation (TASK-007 checkpoint)
 
 **State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-006 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Six of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-007 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Seven of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -60,6 +60,10 @@ Checkpoint evidence: docs/implementation/TASK-005-CHECKPOINT.md.
 TASK-006 added overlap-tolerant 24-hour coverage validation, safe shift reordering, immutable operational-day definition snapshots, and historical user-assignment snapshots.
 
 Checkpoint evidence: docs/implementation/TASK-006-CHECKPOINT.md.
+
+TASK-007 added state-owned daily canvases, Update/To-do/Follow entries, bounded editor documents, immutable assignment-based write permissions, independent To-do toggles, and revision history.
+
+Checkpoint evidence: docs/implementation/TASK-007-CHECKPOINT.md.
 
 ## Correction of the previous status
 
@@ -135,4 +139,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-006 locally and begin TASK-007 daily canvas, structured entries, To-do lists, and revisions. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Checkpoint TASK-007 locally and begin TASK-008 atomic manual Handover and Follow transfer. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.

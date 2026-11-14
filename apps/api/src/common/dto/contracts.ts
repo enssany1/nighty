@@ -131,6 +131,10 @@ export class CreateEntryRequestDto {
   @ApiPropertyOptional({ type: [String], format: "uuid" }) @IsOptional() @IsArray() @IsUUID("4", { each: true }) tagIds?: string[];
 }
 
+export class ToggleTodoRequestDto {
+  @ApiProperty({ type: Boolean }) @IsBoolean() completed!: boolean;
+}
+
 export class ShiftCanvasDto {
   @ApiProperty({ type: String, format: "uuid" }) @IsUUID() id!: string;
   @ApiProperty({ type: String }) @IsString() name!: string;
@@ -206,7 +210,7 @@ export const NIGHTY_OPENAPI_MODELS = [
   LoginRequestDto, ChangePasswordRequestDto, SessionResponseDto, UserResponseDto, CreateUserRequestDto,
   UpdateUserRequestDto, UpdateProfileRequestDto, TemporaryPasswordResponseDto,
   ShiftDefinitionResponseDto, SaveShiftDefinitionRequestDto, ReorderShiftsRequestDto, TodoItemDto,
-  EntryResponseDto, CreateEntryRequestDto, ShiftCanvasDto, CanvasResponseDto,
+  EntryResponseDto, CreateEntryRequestDto, ToggleTodoRequestDto, ShiftCanvasDto, CanvasResponseDto,
   HandoverResponseDto, TagResponseDto, SaveTagRequestDto, AttachmentResponseDto,
   SearchResultDto, SearchResponseDto, SettingResponseDto, AuditEventResponseDto,
 ] as const;

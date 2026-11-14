@@ -338,26 +338,23 @@
         ]
       }
     },
-    "/api/canvas/{operationalDate}": {
+    "/api/canvas/{date}": {
       "get": {
-        "operationId": "canvas_get",
+        "operationId": "EntriesController_getCanvas",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
         "security": [
           {
             "nighty_session": []
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CanvasResponseDto"
-                }
-              }
-            }
-          }
-        }
+        "tags": [
+          "canvas"
+        ]
       }
     },
     "/api/shift-instances/{shiftId}/entries": {
@@ -385,6 +382,85 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EntryResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/entries/{id}": {
+      "patch": {
+        "operationId": "EntriesController_edit",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "canvas"
+        ]
+      }
+    },
+    "/api/entries/{id}/history": {
+      "get": {
+        "operationId": "EntriesController_history",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "canvas"
+        ]
+      }
+    },
+    "/api/todo-items/{id}": {
+      "patch": {
+        "operationId": "EntriesController_toggle",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "canvas"
+        ]
+      }
+    },
+    "/api/canvas/{operationalDate}": {
+      "get": {
+        "operationId": "canvas_get",
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CanvasResponseDto"
                 }
               }
             }
@@ -966,6 +1042,17 @@
           "type",
           "editorDocument",
           "plainText"
+        ]
+      },
+      "ToggleTodoRequestDto": {
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "completed"
         ]
       },
       "ShiftCanvasDto": {
