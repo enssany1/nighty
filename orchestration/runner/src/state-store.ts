@@ -330,6 +330,18 @@ export class StateStore {
       : undefined;
   }
 
+  listTasks(): TaskRecord[] {
+    const rows = this.#database
+      .prepare("SELECT task_id, revision, state, active FROM tasks ORDER BY task_id")
+      .all() as TaskRow[];
+    return rows.map((row) => ({
+      taskId: row.task_id,
+      revision: row.revision,
+      state: row.state,
+      active: row.active === 1,
+    }));
+  }
+
   transition(
     taskId: string,
     expected: TaskState,
