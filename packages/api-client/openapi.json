@@ -319,6 +319,25 @@
         ]
       }
     },
+    "/api/operational-days/current": {
+      "get": {
+        "operationId": "OperationalDaysController_current",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "operations"
+        ]
+      }
+    },
     "/api/operational-days/{date}/materialize": {
       "post": {
         "operationId": "OperationalDaysController_materialize",

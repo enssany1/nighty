@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 15 November 2026, 00:45 +04
+**Updated:** 15 November 2026, 01:15 +04
 
-**Phase:** Production implementation (TASK-012 checkpoint)
+**Phase:** Production implementation (TASK-013 checkpoint)
 
 **State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-012 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Twelve of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-013 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Thirteen of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -85,6 +85,10 @@ TASK-012 added API-backed login and session restoration, explicit 30-minute expi
 
 Checkpoint evidence: docs/implementation/TASK-012-CHECKPOINT.md.
 
+TASK-013 added the compact calendar/Tags sidebar, adjacent scrollable daily canvas, Tiptap Update/To-do/Follow composer, manual Handover, inline images/attachments, combined Search, draft recovery, and separate newest-first Tag whiteboards.
+
+Checkpoint evidence: docs/implementation/TASK-013-CHECKPOINT.md.
+
 ## Correction of the previous status
 
 The previous revision of this file labeled ORCH-001 through ORCH-009 as "Completed and checkpointed" and described the missing DeepSeek credential as the only blocker. That was not supported by evidence. Those items were isolated, unit-tested primitives; no integrated foreground runner, independent review, or checkpoint had been exercised. `TASK_STATUS.json` has been corrected to match.
@@ -159,4 +163,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-012 locally and begin TASK-013 daily canvas, editor, Search, and Tag whiteboards. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Checkpoint TASK-013 locally and begin TASK-014 selected administration workspace. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.

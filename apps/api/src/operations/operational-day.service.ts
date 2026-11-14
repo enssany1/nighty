@@ -25,6 +25,16 @@ function response(day: Prisma.OperationalDayGetPayload<{ include: typeof dayIncl
 export class OperationalDayService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
+  async current() {
+    const day = await this.prisma.operationalDay.findFirst({
+      where: { retentionState: { not: "MARKED" } },
+      orderBy: { operationalDate: "desc" },
+      select: { id: true, operationalDate: true },
+    });
+    if (!day) throw new BadRequestException("No operational day has been started");
+    return { id: day.id, operationalDate: day.operationalDate.toISOString().slice(0, 10) };
+  }
+
   async materialize(dateText: string) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText)) throw new BadRequestException("Operational date must use YYYY-MM-DD");
     const operationalDate = new Date(`${dateText}T00:00:00.000Z`);

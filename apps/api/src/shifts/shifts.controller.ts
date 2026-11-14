@@ -41,6 +41,9 @@ export class ShiftsController {
 export class OperationalDaysController {
   constructor(@Inject(OperationalDayService) private readonly days: OperationalDayService) {}
 
+  @Get("current")
+  current() { return this.days.current(); }
+
   @Roles(UserRole.ADMIN)
   @Post(":date/materialize")
   materialize(@Param("date") date: string) { return this.days.materialize(date); }

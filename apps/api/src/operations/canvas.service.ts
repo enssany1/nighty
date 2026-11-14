@@ -11,6 +11,7 @@ const canvasInclude = {
         orderBy: { createdAt: "asc" as const },
         include: {
           todoItems: { orderBy: { position: "asc" as const } },
+          attachments: { orderBy: { createdAt: "asc" as const } },
           author: { select: { id: true, displayName: true } },
         },
       },
@@ -20,6 +21,7 @@ const canvasInclude = {
           sourceEntry: {
             include: {
               todoItems: { orderBy: { position: "asc" as const } },
+              attachments: { orderBy: { createdAt: "asc" as const } },
               author: { select: { id: true, displayName: true } },
             },
           },
@@ -49,11 +51,31 @@ export class CanvasService {
         position: shift.positionSnapshot,
         status: shift.status,
         writable: shift.status === "ACTIVE" && (role === "ADMIN" || shift.assignmentSnapshots.some((assignment) => assignment.userId === userId)),
-        entries: shift.entries,
+        entries: shift.entries.map((entry) => ({
+          ...entry,
+          attachments: entry.attachments.map((attachment) => ({
+            id: attachment.id,
+            originalName: attachment.originalName,
+            mimeType: attachment.mimeType,
+            byteSize: Number(attachment.byteSize),
+            disposition: attachment.disposition,
+            downloadUrl: `/api/attachments/${attachment.id}/download`,
+          })),
+        })),
         incomingFollows: shift.incomingTransfers.map((transfer) => ({
           transferId: transfer.id,
           status: transfer.status,
-          entry: transfer.sourceEntry,
+          entry: {
+            ...transfer.sourceEntry,
+            attachments: transfer.sourceEntry.attachments.map((attachment) => ({
+              id: attachment.id,
+              originalName: attachment.originalName,
+              mimeType: attachment.mimeType,
+              byteSize: Number(attachment.byteSize),
+              disposition: attachment.disposition,
+              downloadUrl: `/api/attachments/${attachment.id}/download`,
+            })),
+          },
         })),
       })),
     };

@@ -1,0 +1,34 @@
+import { ArrowRight, CheckSquare, FileArrowUp, Image, Paperclip, TextT } from "@phosphor-icons/react";
+import StarterKit from "@tiptap/starter-kit";
+import { EditorContent, useEditor } from "@tiptap/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { api, jsonBody } from "../api/client";
+import type { Entry, EntryType, TodoItem } from "../operations/types";
+
+const actions: Array<{ type: EntryType; label: string; icon: typeof TextT; help: string }> = [
+  { type: "UPDATE", label: "Update", icon: TextT, help: "Record progress or context" },
+  { type: "TODO", label: "To-do list", icon: CheckSquare, help: "Add checkbox actions" },
+  { type: "FOLLOW", label: "Follow", icon: ArrowRight, help: "Transfer automatically at Handover" },
+];
+const keyFor = (date: string, shiftId: string) => `nighty:draft:${date}:${shiftId}`;
+
+async function upload(parentId: string, file: File, disposition: "INLINE" | "ATTACHMENT") {
+  const body = new FormData(); body.append("file", file); body.append("parentType", "entry"); body.append("parentId", parentId); body.append("disposition", disposition);
+  return api("/attachments", { method: "POST", body });
+}
+
+export function EntryComposer({ shiftId, operationalDate, onSubmitted, onHandover }: { shiftId: string; operationalDate: string; onSubmitted(): void; onHandover(): void; }) {
+  const storageKey = keyFor(operationalDate, shiftId); const restored = useMemo(() => { try { return JSON.parse(localStorage.getItem(storageKey) ?? "null") as { html?: string; type?: EntryType; todos?: string[] } | null; } catch { return null; } }, [storageKey]);
+  const [type, setType] = useState<EntryType>(restored?.type ?? "UPDATE"); const [todos, setTodos] = useState<string[]>(restored?.todos?.length ? restored.todos : [""]); const [images, setImages] = useState<File[]>([]); const [files, setFiles] = useState<File[]>([]); const [menu, setMenu] = useState(false); const [busy, setBusy] = useState(false); const [message, setMessage] = useState(""); const fileInput = useRef<HTMLInputElement>(null); const imageInput = useRef<HTMLInputElement>(null);
+  const editor = useEditor({ extensions: [StarterKit], content: restored?.html ?? "", editorProps: { attributes: { class: "tiptap-editor", "aria-label": "Write an update" }, handlePaste: (_view, event) => { const pasted = [...(event.clipboardData?.files ?? [])].filter((file) => file.type.startsWith("image/")); if (!pasted.length) return false; setImages((current) => [...current, ...pasted]); return true; } }, onUpdate: ({ editor: current }) => { const text = current.getText(); setMenu(text.trimEnd().endsWith("/")); localStorage.setItem(storageKey, JSON.stringify({ html: current.getHTML(), type, todos })); } });
+  useEffect(() => { localStorage.setItem(storageKey, JSON.stringify({ html: editor?.getHTML() ?? "", type, todos })); }, [editor, storageKey, todos, type]);
+  function choose(next: EntryType) { setType(next); setMenu(false); if (editor?.getText().trim() === "/") editor.commands.clearContent(); editor?.commands.focus(); }
+  function todoKey(index: number, key: string) { if (key === "Enter") { setTodos((current) => [...current.slice(0, index + 1), "", ...current.slice(index + 1)]); setTimeout(() => (document.querySelector(`[data-todo-index="${index + 1}"]`) as HTMLInputElement | null)?.focus()); } }
+  async function submit() {
+    if (busy) return; const plainText = editor?.getText().trim() ?? ""; const normalizedTodos: TodoItem[] = todos.map((text, index) => ({ text: text.trim(), completed: false, position: index + 1 })).filter((item) => item.text);
+    if (type === "TODO" ? normalizedTodos.length === 0 : !plainText) { setMessage(type === "TODO" ? "Add at least one to-do item." : "Write something before submitting."); return; }
+    setBusy(true); setMessage("");
+    try { const entry = await api<Entry>(`/shift-instances/${shiftId}/entries`, { method: "POST", ...jsonBody({ type, editorDocument: editor?.getJSON(), plainText, ...(type === "TODO" ? { todoItems: normalizedTodos } : {}) }) }); await Promise.all([...images.map((file) => upload(entry.id, file, "INLINE")), ...files.map((file) => upload(entry.id, file, "ATTACHMENT"))]); editor?.commands.clearContent(); setTodos([""]); setImages([]); setFiles([]); localStorage.removeItem(storageKey); setMessage("Submitted."); onSubmitted(); } catch (reason) { setMessage(reason instanceof Error ? reason.message : "Could not submit. Your draft is saved."); } finally { setBusy(false); }
+  }
+  return <section className="entry-composer" aria-label="Shift update composer"><div className="composer-body">{type === "TODO" ? <div className="todo-editor"><strong>To-do list</strong>{todos.map((value, index) => <label key={index}><input type="checkbox" disabled aria-label={`To-do item ${index + 1}`} /><input data-todo-index={index} value={value} onChange={(event) => setTodos((current) => current.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); todoKey(index, event.key); } }} placeholder={index === 0 ? "Add a to-do and press Enter" : "Another to-do"} /></label>)}</div> : <EditorContent editor={editor} />}{menu && <div className="slash-menu" role="menu" aria-label="Insert action">{actions.map((action) => <button key={action.type} role="menuitem" onClick={() => choose(action.type)}><action.icon /><span><strong>{action.label}</strong><small>{action.help}</small></span></button>)}</div>}{images.length > 0 && <div className="image-previews">{images.map((file, index) => <figure key={`${file.name}-${index}`}><img src={URL.createObjectURL(file)} alt={file.name} /><figcaption>{file.name}</figcaption></figure>)}</div>}{files.length > 0 && <ul className="pending-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><Paperclip /> {file.name}</li>)}</ul>}</div><footer><div className="composer-tools"><button className="icon-button" onClick={() => fileInput.current?.click()} aria-label="Attach file"><Paperclip /></button><button className="icon-button" onClick={() => imageInput.current?.click()} aria-label="Add image"><Image /></button><input ref={fileInput} hidden type="file" onChange={(event) => setFiles((current) => [...current, ...Array.from(event.target.files ?? [])])} /><input ref={imageInput} hidden type="file" accept="image/*" onChange={(event) => setImages((current) => [...current, ...Array.from(event.target.files ?? [])])} /><span className={`action-badge ${type.toLowerCase()}`}><FileArrowUp /> {actions.find((action) => action.type === type)?.label}</span></div><div className="composer-actions"><span role="status">{message || "Draft saved locally"}</span><button className="secondary-button" onClick={() => void submit()} disabled={busy}>{busy ? "Submitting…" : "Submit"}</button><button className="primary-button handover-button" onClick={onHandover}><ArrowRight /> Handover</button></div></footer></section>;
+}

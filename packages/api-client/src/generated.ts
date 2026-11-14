@@ -278,6 +278,13 @@ export interface paths {
       response: unknown;
     };
   };
+  "/api/operational-days/current": {
+    get: {
+      operationId: "OperationalDaysController_current";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/profile": {
     get: {
       operationId: "ProfileController_get";
