@@ -101,6 +101,10 @@ export class SaveShiftDefinitionRequestDto {
   @ApiProperty({ type: Boolean }) @IsBoolean() active!: boolean;
 }
 
+export class ReorderShiftsRequestDto {
+  @ApiProperty({ type: [String], format: "uuid" }) @IsArray() @IsUUID("4", { each: true }) shiftIds!: string[];
+}
+
 export class TodoItemDto {
   @ApiPropertyOptional({ type: String, format: "uuid" }) @IsOptional() @IsUUID() id?: string;
   @ApiProperty({ type: String }) @IsString() @MinLength(1) text!: string;
@@ -201,7 +205,7 @@ export class AuditEventResponseDto {
 export const NIGHTY_OPENAPI_MODELS = [
   LoginRequestDto, ChangePasswordRequestDto, SessionResponseDto, UserResponseDto, CreateUserRequestDto,
   UpdateUserRequestDto, UpdateProfileRequestDto, TemporaryPasswordResponseDto,
-  ShiftDefinitionResponseDto, SaveShiftDefinitionRequestDto, TodoItemDto,
+  ShiftDefinitionResponseDto, SaveShiftDefinitionRequestDto, ReorderShiftsRequestDto, TodoItemDto,
   EntryResponseDto, CreateEntryRequestDto, ShiftCanvasDto, CanvasResponseDto,
   HandoverResponseDto, TagResponseDto, SaveTagRequestDto, AttachmentResponseDto,
   SearchResultDto, SearchResponseDto, SettingResponseDto, AuditEventResponseDto,

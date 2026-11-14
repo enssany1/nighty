@@ -281,6 +281,63 @@
         }
       }
     },
+    "/api/shifts/{id}": {
+      "patch": {
+        "operationId": "ShiftsController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "shifts"
+        ]
+      }
+    },
+    "/api/shifts/reorder": {
+      "post": {
+        "operationId": "ShiftsController_reorder",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "shifts"
+        ]
+      }
+    },
+    "/api/operational-days/{date}/materialize": {
+      "post": {
+        "operationId": "OperationalDaysController_materialize",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "operations"
+        ]
+      }
+    },
     "/api/canvas/{operationalDate}": {
       "get": {
         "operationId": "canvas_get",
@@ -778,6 +835,21 @@
           "startMinute",
           "endMinute",
           "active"
+        ]
+      },
+      "ReorderShiftsRequestDto": {
+        "type": "object",
+        "properties": {
+          "shiftIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "shiftIds"
         ]
       },
       "TodoItemDto": {

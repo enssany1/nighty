@@ -61,6 +61,9 @@ export interface components {
       "username": string;
       "password": string;
     };
+    "ReorderShiftsRequestDto": {
+      "shiftIds": Array<string>;
+    };
     "SaveShiftDefinitionRequestDto": {
       "name": string;
       "startMinute": number;
@@ -201,6 +204,13 @@ export interface paths {
       response: unknown;
     };
   };
+  "/api/operational-days/{date}/materialize": {
+    post: {
+      operationId: "OperationalDaysController_materialize";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/profile": {
     get: {
       operationId: "ProfileController_get";
@@ -253,6 +263,20 @@ export interface paths {
       response: components["schemas"]["ShiftDefinitionResponseDto"];
     };
   };
+  "/api/shifts/{id}": {
+    patch: {
+      operationId: "ShiftsController_update";
+      request: unknown;
+      response: unknown;
+    };
+  };
+  "/api/shifts/reorder": {
+    post: {
+      operationId: "ShiftsController_reorder";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/tags": {
     get: {
       operationId: "tags_list";
@@ -302,6 +326,7 @@ export type CreateUserRequestDto = components["schemas"]["CreateUserRequestDto"]
 export type EntryResponseDto = components["schemas"]["EntryResponseDto"];
 export type HandoverResponseDto = components["schemas"]["HandoverResponseDto"];
 export type LoginRequestDto = components["schemas"]["LoginRequestDto"];
+export type ReorderShiftsRequestDto = components["schemas"]["ReorderShiftsRequestDto"];
 export type SaveShiftDefinitionRequestDto = components["schemas"]["SaveShiftDefinitionRequestDto"];
 export type SaveTagRequestDto = components["schemas"]["SaveTagRequestDto"];
 export type SearchResponseDto = components["schemas"]["SearchResponseDto"];
