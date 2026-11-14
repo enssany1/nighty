@@ -1,12 +1,27 @@
 # Nighty Project Status
 
-**Updated:** 14 November 2026, 20:58 +04
+**Updated:** 14 November 2026, 21:13 +04
 
-**Phase:** Orchestration foundation hardening (TASK-901)
+**Phase:** Production implementation (TASK-001 checkpoint)
 
-**State:** ORCHESTRATION_ACCEPTANCE_PENDING
+**State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 independently approved and checkpointed; 0 of 10 ORCH plan tasks accepted because their remaining acceptance criteria are still explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 is implemented and accepted as a direct Codex checkpoint under the owner's explicit unattended authorization. One of 15 production tasks is accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+
+## Application implementation authorization and status
+
+The owner explicitly authorized Codex to continue independently and unattended until the project is delivered. The exact manual activation decision is recorded in orchestration/status/ACTIVATION_DECISION.md. This is a direct foreground implementation path: it does not claim a DeepSeek-authored delivery, an independent runner review, or technical acceptance of ORCH-001 through ORCH-010.
+
+TASK-001 established and verified:
+
+- Node 24/npm 11 workspaces for the NestJS API, React web app, API client, and test fixtures.
+- Stable API and browser health boundaries.
+- Strict TypeScript, Helmet, bounded request parsing, request IDs, and sans-serif-only design tokens.
+- Valid Docker Compose topology with persistent PostgreSQL and attachment volumes.
+- Locally built Nighty API and web images.
+- Full gate: 116 orchestration tests plus API/web smoke tests pass; all workspaces build; production dependency audit reports zero vulnerabilities.
+
+Checkpoint evidence: docs/implementation/TASK-001-CHECKPOINT.md.
 
 ## Correction of the previous status
 
@@ -62,15 +77,18 @@ Two distinct things remain true:
 
 ## Verification evidence
 
-- `npm run typecheck`: exit 0.
-- `npm test`: 116 tests passed, 0 failed as part of the final `npm run check`.
-- `npm run check`: exit 0 (typecheck plus 116 tests).
+- `npm run typecheck`: exit 0 across the runner and all production workspaces.
+- `npm run check`: exit 0 (116 orchestration tests plus the API and web smoke suites).
+- `npm run build --workspaces --if-present`: exit 0.
+- `docker compose config`: exit 0.
+- `docker compose build api web`: exit 0.
+- `npm audit --omit=dev --audit-level=high`: exit 0, zero vulnerabilities.
 - `git diff --check`: exit 0.
 - Git was supplied through the exact provided executable directory, not installed.
 
 ## Known limitations
 
-- No live Codex adapter or DeepSeek development invocation occurred; adapter behavior was exercised only with disposable local fixtures. The independent A01 review was performed by Codex outside the runner.
+- No live provider invocation occurred through the runner. TASK-901 A03 used the separately authorized DeepSeek Harness interaction; TASK-001 was implemented directly by Codex and is not represented as a DeepSeek delivery.
 - The foreground runner loop (watcher plus polling) is not activated; the reconciler is callable and tested.
 - Localized Windows `taskkill` output and a forced cleanup-failure retry remain unexercised; cleanup evidence records `remainingPids`, `deadlineExceeded`, and `failures`.
 - Windows descendant liveness is tracked by a bounded polling window while the root is alive; a descendant that both survives and starts after the final poll could escape discovery. The recorded run/lease PID and cleanup evidence remain explicit.
@@ -79,4 +97,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Complete and independently accept the remaining ORCH-001 through ORCH-010 criteria, including the foreground disposable provider pilot and recovery matrix. Nighty application TASK-001 must not start until the runner reaches its activation gate.
+Checkpoint TASK-001 locally and begin TASK-002 persistence, migration, and deterministic seed work. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.

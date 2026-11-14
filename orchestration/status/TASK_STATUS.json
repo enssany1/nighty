@@ -1,11 +1,13 @@
 {
   "schema": "nighty.task-status/v1",
-  "generatedAt": "2026-11-14T20:58:00+04:00",
-  "projectState": "ORCHESTRATION_ACCEPTANCE_PENDING",
+  "generatedAt": "2026-11-14T21:13:00+04:00",
+  "projectState": "APPLICATION_IMPLEMENTATION_ACTIVE",
   "activeTaskId": null,
   "runnerOwner": null,
   "acceptedPlanTasks": 0,
   "plannedTasks": 10,
+  "applicationAcceptedTasks": 1,
+  "applicationPlannedTasks": 15,
   "tasks": [
     {
       "taskId": "ORCH-001",
@@ -127,6 +129,17 @@
         "review": "orchestration/reviews/TASK-901-A02-REVIEW.md",
         "delivery": "orchestration/deliveries/TASK-901-A02-DELIVERY.md"
       },
+      "remainingAcceptance": []
+    },
+    {
+      "taskId": "TASK-001",
+      "revision": 1,
+      "attempt": "DIRECT-CODEX",
+      "state": "CHECKPOINT_READY",
+      "accepted": true,
+      "reviewPending": false,
+      "checkpoint": "docs/implementation/TASK-001-CHECKPOINT.md",
+      "authorization": "orchestration/status/ACTIVATION_DECISION.md",
       "remainingAcceptance": []
     }
   ]

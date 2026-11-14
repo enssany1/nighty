@@ -13,4 +13,5 @@ orchestration/logs/
 orchestration/quarantine/
 *.tmp
 *.log
+*.tsbuildinfo
 

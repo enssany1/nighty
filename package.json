@@ -3,14 +3,23 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "npm@11.15.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "engines": {
     "node": ">=24.0.0"
   },
   "scripts": {
-    "check": "npm run typecheck && npm test",
+    "check": "npm run typecheck && npm run test:all",
+    "build": "npm run build --workspaces --if-present",
+    "dev:api": "npm run dev -w @nighty/api",
+    "dev:web": "npm run dev -w @nighty/web",
     "test": "node --disable-warning=ExperimentalWarning --test orchestration/runner/test/*.test.ts",
+    "test:all": "npm run test:orchestration && npm test --workspaces --if-present",
     "test:orchestration": "node --disable-warning=ExperimentalWarning --test orchestration/runner/test/*.test.ts",
-    "typecheck": "tsc -p orchestration/runner/tsconfig.json --noEmit"
+    "typecheck": "tsc -p orchestration/runner/tsconfig.json --noEmit && npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

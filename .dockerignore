@@ -1,0 +1,14 @@
+.git
+.worktrees
+node_modules
+**/node_modules
+**/dist
+coverage
+.env
+.env.*
+!.env.example
+orchestration/status/*.db*
+orchestration/logs
+orchestration/quarantine
+*.log
+*.tmp
