@@ -92,6 +92,9 @@ export type ReconcilerOptions = {
   developer?: ArtifactProducer;
   reviewer?: ArtifactProducer;
   schemasDirectory?: string;
+  developerLeaseMs?: number;
+  reviewerLeaseMs?: number;
+  heartbeatIntervalMs?: number;
 };
 
 type ReadArtifact = {
@@ -357,6 +360,8 @@ export class Reconciler {
   #reconcileDevelopment(task: TaskRecord): ReconcileAction {
     const names = this.#deliveryNames(task.taskId);
     const state = this.#activeLease(task.taskId);
+    const latestRun = this.#options.state.listRuns(task.taskId).at(-1);
+    const producerFailed = latestRun?.state === "FAILED" || latestRun?.state === "TIMED_OUT";
 
     if (names.length === 0) {
       const decision = decideRecovery({
@@ -365,6 +370,7 @@ export class Reconciler {
         ownedProcessAlive: state.ownedProcessAlive,
         producerDescendantAlive: state.descendantAlive,
         artifact: null,
+        producerFailed,
       });
       if (decision.action === "MARK_EXECUTION_FAILED") {
         this.#safeTransition(task, "IN_DEVELOPMENT", "EXECUTION_FAILED", decision.reason);
@@ -443,6 +449,7 @@ export class Reconciler {
       ownedProcessAlive: state.ownedProcessAlive,
       producerDescendantAlive: state.descendantAlive,
       artifact: { digest: artifact.digest, recordedDigest },
+      producerFailed,
     });
 
     if (decision.action === "WAIT") {
@@ -512,6 +519,13 @@ export class Reconciler {
       };
     }
     if (decision.action === "MARK_EXECUTION_FAILED") {
+      this.#quarantine(
+        this.#options.deliveriesDirectory,
+        name,
+        decision.reason,
+        recordedDigest,
+        artifact.digest,
+      );
       this.#safeTransition(task, "IN_DEVELOPMENT", "EXECUTION_FAILED", decision.reason);
       return {
         kind: "EXECUTION_FAILED",
@@ -720,13 +734,14 @@ export class Reconciler {
     });
     const attempt = "A" + String(this.#nextAttemptNumber(taskId)).padStart(2, "0");
     this.#options.state.beginAttempt(taskId, task.revision, attempt);
+    const leaseMs = this.#options.developerLeaseMs ?? 30 * 60_000;
     const run = this.#options.state.beginRun({
       taskId,
       revision: task.revision,
       attempt,
       role: "developer",
       pid: null,
-      leaseMs: 30 * 60_000,
+      leaseMs,
     });
     try {
       const prompt = this.readTaskPrompt(taskId);
@@ -734,20 +749,24 @@ export class Reconciler {
         this.#options.deliveriesDirectory,
         taskId + "-" + attempt + "-DELIVERY.md",
       );
-      const result = await producer.run({
-        taskId,
-        revision: task.revision,
-        attempt,
-        prompt,
-        outputPath,
-        outputSchemaPath: path.join(this.#schemasDirectory, "delivery.schema.json"),
-        onProcessStarted: (identity) => {
-          this.#options.state.attachOwnedProcess({
-            runId: run.runId,
-            pid: identity.rootPid,
-          });
-        },
-      });
+      const result = await this.#withHeartbeat(run.runId, leaseMs, async () =>
+        await producer.run({
+          taskId,
+          revision: task.revision,
+          attempt,
+          prompt,
+          outputPath,
+          outputSchemaPath: path.join(this.#schemasDirectory, "delivery.schema.json"),
+          onProcessStarted: (identity) => {
+            this.#options.state.attachOwnedProcess({
+              runId: run.runId,
+              pid: identity.rootPid,
+              observedAt: identity.startedAt,
+              ...(identity.executable ? { executable: identity.executable } : {}),
+            });
+          },
+        }),
+      );
       const attached = this.#options.state.getRun(run.runId);
       if (!attached || attached.pid === null) {
         throw new Error("producer did not record provider process ownership");
@@ -799,13 +818,14 @@ export class Reconciler {
     this.#options.state.transition(taskId, "DELIVERED", "UNDER_REVIEW", "review dispatch", {
       expectedRevision: task.revision,
     });
+    const leaseMs = this.#options.reviewerLeaseMs ?? 15 * 60_000;
     const run = this.#options.state.beginRun({
       taskId,
       revision: task.revision,
       attempt: reviewed.attempt,
       role: "reviewer",
       pid: null,
-      leaseMs: 15 * 60_000,
+      leaseMs,
     });
     try {
       const deliveryPath = path.join(
@@ -831,20 +851,24 @@ export class Reconciler {
         this.#options.reviewsDirectory,
         taskId + "-" + reviewed.attempt + "-REVIEW.md",
       );
-      const result = await producer.run({
-        taskId,
-        revision: task.revision,
-        attempt: reviewed.attempt,
-        prompt,
-        outputPath,
-        outputSchemaPath: path.join(this.#schemasDirectory, "review.schema.json"),
-        onProcessStarted: (identity) => {
-          this.#options.state.attachOwnedProcess({
-            runId: run.runId,
-            pid: identity.rootPid,
-          });
-        },
-      });
+      const result = await this.#withHeartbeat(run.runId, leaseMs, async () =>
+        await producer.run({
+          taskId,
+          revision: task.revision,
+          attempt: reviewed.attempt,
+          prompt,
+          outputPath,
+          outputSchemaPath: path.join(this.#schemasDirectory, "review.schema.json"),
+          onProcessStarted: (identity) => {
+            this.#options.state.attachOwnedProcess({
+              runId: run.runId,
+              pid: identity.rootPid,
+              observedAt: identity.startedAt,
+              ...(identity.executable ? { executable: identity.executable } : {}),
+            });
+          },
+        }),
+      );
       const attached = this.#options.state.getRun(run.runId);
       if (!attached || attached.pid === null) {
         throw new Error("producer did not record provider process ownership");
@@ -884,6 +908,25 @@ export class Reconciler {
     const names = this.#deliveryNames(taskId);
     if (names.length === 0) return 1;
     return attemptNumber(attemptFromName(names[0] as string, DELIVERY_NAME)) + 1;
+  }
+
+  async #withHeartbeat<T>(runId: string, leaseMs: number, operation: () => Promise<T>): Promise<T> {
+    const intervalMs = this.#options.heartbeatIntervalMs ?? Math.min(30_000, Math.max(1, Math.floor(leaseMs / 3)));
+    let heartbeatError: Error | null = null;
+    const timer = setInterval(() => {
+      try {
+        this.#options.state.heartbeat(runId, leaseMs);
+      } catch (error) {
+        heartbeatError = error instanceof Error ? error : new Error(String(error));
+      }
+    }, intervalMs);
+    try {
+      const result = await operation();
+      if (heartbeatError) throw heartbeatError;
+      return result;
+    } finally {
+      clearInterval(timer);
+    }
   }
 
   /**

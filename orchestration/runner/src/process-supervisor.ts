@@ -6,6 +6,8 @@ export type ProcessStartIdentity = {
   runId: string;
   rootPid: number;
   startedAt: string;
+  /** Exact allowlisted executable requested for this owned process. */
+  executable?: string;
 };
 
 export type ProcessRequest = {
@@ -506,6 +508,7 @@ export async function runOwnedProcess(request: ProcessRequest): Promise<ProcessR
         runId,
         rootPid,
         startedAt: new Date().toISOString(),
+        executable: path.resolve(request.executable),
       });
     } catch (error) {
       ownershipError = error instanceof Error ? error : new Error(String(error));

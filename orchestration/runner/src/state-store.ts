@@ -48,6 +48,8 @@ export type RunRecord = {
   endedAt: string | null;
   exitCode: number | null;
   timedOut: boolean;
+  processStartedAt: string | null;
+  processExecutable: string | null;
 };
 
 export type LeaseRecord = {
@@ -61,6 +63,8 @@ export type LeaseRecord = {
   heartbeatAt: string;
   expiresAt: string;
   expired: boolean;
+  processStartedAt: string | null;
+  processExecutable: string | null;
 };
 
 export type EventRecord = {
@@ -91,6 +95,8 @@ type RunRow = {
   ended_at: string | null;
   exit_code: number | null;
   timed_out: number;
+  process_started_at: string | null;
+  process_executable: string | null;
 };
 
 type LeaseRow = {
@@ -103,6 +109,8 @@ type LeaseRow = {
   acquired_at: string;
   heartbeat_at: string;
   expires_at: string;
+  process_started_at: string | null;
+  process_executable: string | null;
 };
 
 const ACTIVE_STATES = new Set<TaskState>([
@@ -161,6 +169,8 @@ function runRowToRecord(row: RunRow): RunRecord {
     endedAt: row.ended_at,
     exitCode: row.exit_code,
     timedOut: row.timed_out === 1,
+    processStartedAt: row.process_started_at,
+    processExecutable: row.process_executable,
   };
 }
 
@@ -244,6 +254,24 @@ export class StateStore {
     }
     if (!eventColumns.some((column) => column.name === "run_id")) {
       this.#database.exec("ALTER TABLE events ADD COLUMN run_id TEXT");
+    }
+    const runColumns = this.#database
+      .prepare("PRAGMA table_info(runs)")
+      .all() as Array<{ name: string }>;
+    if (!runColumns.some((column) => column.name === "process_started_at")) {
+      this.#database.exec("ALTER TABLE runs ADD COLUMN process_started_at TEXT");
+    }
+    if (!runColumns.some((column) => column.name === "process_executable")) {
+      this.#database.exec("ALTER TABLE runs ADD COLUMN process_executable TEXT");
+    }
+    const leaseColumns = this.#database
+      .prepare("PRAGMA table_info(leases)")
+      .all() as Array<{ name: string }>;
+    if (!leaseColumns.some((column) => column.name === "process_started_at")) {
+      this.#database.exec("ALTER TABLE leases ADD COLUMN process_started_at TEXT");
+    }
+    if (!leaseColumns.some((column) => column.name === "process_executable")) {
+      this.#database.exec("ALTER TABLE leases ADD COLUMN process_executable TEXT");
     }
   }
 
@@ -570,6 +598,8 @@ export class StateStore {
         endedAt: null,
         exitCode: null,
         timedOut: false,
+        processStartedAt: null,
+        processExecutable: null,
       };
     } catch (error) {
       this.#database.exec("ROLLBACK");
@@ -577,7 +607,12 @@ export class StateStore {
     }
   }
 
-  attachOwnedProcess(input: { runId: string; pid: number; observedAt?: string }): void {
+  attachOwnedProcess(input: {
+    runId: string;
+    pid: number;
+    observedAt?: string;
+    executable?: string;
+  }): void {
     if (!Number.isInteger(input.pid) || input.pid < 1) {
       throw new Error("invalid provider process pid");
     }
@@ -605,12 +640,14 @@ export class StateStore {
         }
         throw new Error("run already owns provider process " + run.pid);
       }
+      const processStartedAt = input.observedAt ?? now;
+      const processExecutable = input.executable ?? null;
       this.#database
-        .prepare("UPDATE runs SET pid = ? WHERE run_id = ?")
-        .run(input.pid, input.runId);
+        .prepare("UPDATE runs SET pid = ?, process_started_at = ?, process_executable = ? WHERE run_id = ?")
+        .run(input.pid, processStartedAt, processExecutable, input.runId);
       this.#database
-        .prepare("UPDATE leases SET pid = ?, heartbeat_at = ? WHERE run_id = ? AND released_at IS NULL")
-        .run(input.pid, now, input.runId);
+        .prepare("UPDATE leases SET pid = ?, heartbeat_at = ?, process_started_at = ?, process_executable = ? WHERE run_id = ? AND released_at IS NULL")
+        .run(input.pid, now, processStartedAt, processExecutable, input.runId);
       this.#insertEvent({
         taskId: run.task_id,
         revision: run.revision,
@@ -652,6 +689,8 @@ export class StateStore {
         heartbeatAt: now,
         expiresAt,
         expired: false,
+        processStartedAt: lease.process_started_at,
+        processExecutable: lease.process_executable,
       };
     } catch (error) {
       this.#database.exec("ROLLBACK");
@@ -729,7 +768,31 @@ export class StateStore {
       heartbeatAt: row.heartbeat_at,
       expiresAt: row.expires_at,
       expired: Date.parse(row.expires_at) <= Date.now(),
+      processStartedAt: row.process_started_at,
+      processExecutable: row.process_executable,
     };
+  }
+
+  recordCleanupFailure(runId: string, reason: string): void {
+    this.#database.exec("BEGIN IMMEDIATE");
+    try {
+      const run = this.#database
+        .prepare("SELECT * FROM runs WHERE run_id = ?")
+        .get(runId) as RunRow | undefined;
+      if (!run) throw new Error("unknown run " + runId);
+      if (run.state !== "RUNNING") throw new Error("cleanup retry requires a running run");
+      this.#insertEvent({
+        taskId: run.task_id,
+        revision: run.revision,
+        runId,
+        eventType: "CLEANUP_RETRY_REQUIRED",
+        reason,
+      });
+      this.#database.exec("COMMIT");
+    } catch (error) {
+      this.#database.exec("ROLLBACK");
+      throw error;
+    }
   }
 
   recordArtifact(

@@ -14,6 +14,7 @@ type RecoveryInput = {
   producerDescendantAlive?: boolean;
   artifact: { digest: string; recordedDigest: string | null } | null;
   correctionsExhausted?: boolean;
+  producerFailed?: boolean;
 };
 
 type RecoveryDecision = {
@@ -54,6 +55,12 @@ export function decideRecovery(input: RecoveryInput): RecoveryDecision {
       };
     }
     return { action: "WAIT", reason: "owned process and lease are live" };
+  }
+  if (input.producerFailed === true) {
+    return {
+      action: "MARK_EXECUTION_FAILED",
+      reason: "provider run already failed; late output is not accepted",
+    };
   }
   if (input.state === "UNDER_REVIEW" && input.leaseExpired) {
     return {
