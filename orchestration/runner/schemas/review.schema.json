@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nighty.review/v1",
+  "type": "object",
+  "required": ["schema", "task_id", "task_revision", "attempt", "run_id", "decision", "reviewed_by", "created_at", "delivery_sha256"],
+  "properties": {
+    "schema": { "const": "nighty.review/v1" },
+    "decision": { "enum": ["APPROVED", "CHANGES_REQUIRED", "BLOCKED"] },
+    "reviewed_by": { "const": "codex" },
+    "delivery_sha256": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" }
+  },
+  "additionalProperties": true
+}

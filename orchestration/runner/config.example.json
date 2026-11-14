@@ -1,0 +1,10 @@
+{
+  "projectRoot": "E:\\Nighty",
+  "pollIntervalMs": 30000,
+  "maxCorrectionAttempts": 3,
+  "developerTimeoutMs": 1800000,
+  "reviewerTimeoutMs": 900000,
+  "maxOutputBytes": 10485760,
+  "autoRetryWithoutMutation": 1,
+  "dryRun": true
+}
