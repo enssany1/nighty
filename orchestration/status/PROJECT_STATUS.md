@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 15 November 2026, 00:15 +04
+**Updated:** 15 November 2026, 00:45 +04
 
-**Phase:** Production implementation (TASK-011 checkpoint)
+**Phase:** Production implementation (TASK-012 checkpoint)
 
 **State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-011 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Eleven of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-012 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Twelve of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -80,6 +80,10 @@ Checkpoint evidence: docs/implementation/TASK-010-CHECKPOINT.md.
 TASK-011 added indexed multi-filter search, bounded deterministic cursor paging, dry-run retention preview, marked ownership, inherited attachment deletion, partial-failure retention, idempotent retry, and audit summaries.
 
 Checkpoint evidence: docs/implementation/TASK-011-CHECKPOINT.md.
+
+TASK-012 added API-backed login and session restoration, explicit 30-minute expiry recovery, role-aware navigation, sign out, and responsive Profile/password UI with in-memory CSRF handling.
+
+Checkpoint evidence: docs/implementation/TASK-012-CHECKPOINT.md.
 
 ## Correction of the previous status
 
@@ -155,4 +159,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-011 locally and begin TASK-012 authenticated browser shell and Profile UI. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Checkpoint TASK-012 locally and begin TASK-013 daily canvas, editor, Search, and Tag whiteboards. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
