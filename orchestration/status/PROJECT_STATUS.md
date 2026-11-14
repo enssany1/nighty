@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 14 November 2026, 21:13 +04
+**Updated:** 14 November 2026, 21:27 +04
 
-**Phase:** Production implementation (TASK-001 checkpoint)
+**Phase:** Production implementation (TASK-002 checkpoint)
 
 **State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 is implemented and accepted as a direct Codex checkpoint under the owner's explicit unattended authorization. One of 15 production tasks is accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 and TASK-002 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Two of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -22,6 +22,16 @@ TASK-001 established and verified:
 - Full gate: 116 orchestration tests plus API/web smoke tests pass; all workspaces build; production dependency audit reports zero vulnerabilities.
 
 Checkpoint evidence: docs/implementation/TASK-001-CHECKPOINT.md.
+
+TASK-002 added:
+
+- Prisma 7.10 PostgreSQL schema and generated client boundary for all approved V1 owners.
+- Initial migration with database-owned uniqueness, lifecycle, range, digest, exclusive-parent, and one-active-shift constraints.
+- Idempotent non-destructive development seed with four users, three shifts, assignments, one operational day, representative Update/To-do/Follow records, tags, and settings.
+- Nest Prisma service using the official pg adapter.
+- Four passing real PostgreSQL integration tests.
+
+Checkpoint evidence: docs/implementation/TASK-002-CHECKPOINT.md.
 
 ## Correction of the previous status
 
@@ -97,4 +107,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-001 locally and begin TASK-002 persistence, migration, and deterministic seed work. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Checkpoint TASK-002 locally and begin TASK-003 validated DTO, OpenAPI, and generated frontend client work. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.

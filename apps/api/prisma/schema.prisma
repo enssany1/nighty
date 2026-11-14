@@ -1,0 +1,287 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  runtime                = "nodejs"
+  moduleFormat           = "cjs"
+  generatedFileExtension = "ts"
+  importFileExtension    = ""
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum ShiftStatus {
+  UPCOMING
+  ACTIVE
+  CLOSED
+}
+
+enum EntryType {
+  UPDATE
+  TODO
+  FOLLOW
+}
+
+enum FollowStatus {
+  OPEN
+  COMPLETED
+}
+
+enum AttachmentDisposition {
+  INLINE
+  ATTACHMENT
+}
+
+enum TagStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model User {
+  id                 String             @id @default(uuid()) @db.Uuid
+  username           String             @unique @db.VarChar(80)
+  displayName        String             @db.VarChar(160)
+  passwordHash       String
+  role               UserRole           @default(OPERATOR)
+  status             UserStatus         @default(ACTIVE)
+  mustChangePassword Boolean            @default(false)
+  createdAt          DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime           @updatedAt @db.Timestamptz(3)
+  sessions           Session[]
+  shiftAssignments   ShiftAssignment[]
+  entries            Entry[]            @relation("EntryAuthor")
+  revisions          EntryRevision[]    @relation("RevisionEditor")
+  tagPosts           TagPost[]          @relation("TagPostAuthor")
+  attachments        Attachment[]       @relation("AttachmentUploader")
+  completedFollows   FollowTransfer[]   @relation("FollowCompleter")
+  auditEvents        AuditEvent[]       @relation("AuditActor")
+  settingsUpdated    AppSetting[]       @relation("SettingUpdater")
+}
+
+model Session {
+  id             String    @id @default(uuid()) @db.Uuid
+  tokenDigest    String    @unique @db.Char(64)
+  csrfDigest     String    @db.Char(64)
+  userId         String    @db.Uuid
+  lastActivityAt DateTime  @db.Timestamptz(3)
+  expiresAt      DateTime  @db.Timestamptz(3)
+  revokedAt      DateTime? @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(3)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+model ShiftDefinition {
+  id          String            @id @default(uuid()) @db.Uuid
+  name        String            @unique @db.VarChar(80)
+  startMinute Int
+  endMinute   Int
+  position    Int               @unique
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime          @updatedAt @db.Timestamptz(3)
+  assignments ShiftAssignment[]
+  instances   ShiftInstance[]
+}
+
+model ShiftAssignment {
+  userId            String          @db.Uuid
+  shiftDefinitionId String          @db.Uuid
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shiftDefinition   ShiftDefinition @relation(fields: [shiftDefinitionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, shiftDefinitionId])
+  @@index([shiftDefinitionId])
+}
+
+model OperationalDay {
+  id                String          @id @default(uuid()) @db.Uuid
+  operationalDate   DateTime        @unique @db.Date
+  boundaryMinute    Int
+  createdAt         DateTime        @default(now()) @db.Timestamptz(3)
+  shiftInstances    ShiftInstance[]
+}
+
+model ShiftInstance {
+  id                  String           @id @default(uuid()) @db.Uuid
+  operationalDayId    String           @db.Uuid
+  definitionId        String           @db.Uuid
+  nameSnapshot        String           @db.VarChar(80)
+  startMinuteSnapshot Int
+  endMinuteSnapshot   Int
+  positionSnapshot    Int
+  status              ShiftStatus      @default(UPCOMING)
+  openedAt            DateTime?        @db.Timestamptz(3)
+  closedAt            DateTime?        @db.Timestamptz(3)
+  version             Int              @default(0)
+  operationalDay      OperationalDay   @relation(fields: [operationalDayId], references: [id], onDelete: Cascade)
+  definition          ShiftDefinition  @relation(fields: [definitionId], references: [id], onDelete: Restrict)
+  entries             Entry[]
+  outgoingTransfers   FollowTransfer[] @relation("FollowFromShift")
+  incomingTransfers   FollowTransfer[] @relation("FollowToShift")
+
+  @@unique([operationalDayId, positionSnapshot])
+  @@index([status])
+  @@index([definitionId])
+}
+
+model Entry {
+  id              String          @id @default(uuid()) @db.Uuid
+  shiftInstanceId String          @db.Uuid
+  authorId        String          @db.Uuid
+  type            EntryType
+  editorDocument  Json
+  plainText       String
+  followStatus    FollowStatus?
+  createdAt       DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(3)
+  shiftInstance   ShiftInstance   @relation(fields: [shiftInstanceId], references: [id], onDelete: Cascade)
+  author          User            @relation("EntryAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  todoItems       TodoItem[]
+  revisions       EntryRevision[]
+  tags            EntryTag[]
+  attachments     Attachment[]
+  followTransfers FollowTransfer[]
+
+  @@index([shiftInstanceId, createdAt])
+  @@index([authorId])
+  @@index([type])
+}
+
+model TodoItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  entryId   String   @db.Uuid
+  text      String
+  completed Boolean  @default(false)
+  position  Int
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([entryId, position])
+}
+
+model FollowTransfer {
+  id                  String        @id @default(uuid()) @db.Uuid
+  sourceEntryId       String        @db.Uuid
+  fromShiftInstanceId String        @db.Uuid
+  toShiftInstanceId   String        @db.Uuid
+  status              FollowStatus  @default(OPEN)
+  completedById       String?       @db.Uuid
+  completedAt         DateTime?     @db.Timestamptz(3)
+  createdAt           DateTime      @default(now()) @db.Timestamptz(3)
+  sourceEntry         Entry         @relation(fields: [sourceEntryId], references: [id], onDelete: Cascade)
+  fromShiftInstance   ShiftInstance @relation("FollowFromShift", fields: [fromShiftInstanceId], references: [id], onDelete: Restrict)
+  toShiftInstance     ShiftInstance @relation("FollowToShift", fields: [toShiftInstanceId], references: [id], onDelete: Restrict)
+  completedBy         User?         @relation("FollowCompleter", fields: [completedById], references: [id], onDelete: Restrict)
+
+  @@unique([sourceEntryId, toShiftInstanceId])
+  @@index([toShiftInstanceId, status])
+}
+
+model EntryRevision {
+  id             String   @id @default(uuid()) @db.Uuid
+  entryId        String   @db.Uuid
+  revisionNumber Int
+  editorDocument Json
+  plainText      String
+  editedById     String   @db.Uuid
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  entry          Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  editedBy       User     @relation("RevisionEditor", fields: [editedById], references: [id], onDelete: Restrict)
+
+  @@unique([entryId, revisionNumber])
+}
+
+model Tag {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @unique @db.VarChar(80)
+  position  Int       @unique
+  status    TagStatus @default(ACTIVE)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  posts     TagPost[]
+  entries   EntryTag[]
+}
+
+model EntryTag {
+  entryId String @db.Uuid
+  tagId   String @db.Uuid
+  entry   Entry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Restrict)
+
+  @@id([entryId, tagId])
+  @@index([tagId])
+}
+
+model TagPost {
+  id             String       @id @default(uuid()) @db.Uuid
+  tagId          String       @db.Uuid
+  authorId       String       @db.Uuid
+  editorDocument Json
+  plainText      String
+  createdAt      DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime     @updatedAt @db.Timestamptz(3)
+  tag            Tag          @relation(fields: [tagId], references: [id], onDelete: Restrict)
+  author         User         @relation("TagPostAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  attachments    Attachment[]
+
+  @@index([tagId, createdAt])
+}
+
+model Attachment {
+  id          String                @id @default(uuid()) @db.Uuid
+  storageKey  String                @unique
+  originalName String               @db.VarChar(255)
+  mimeType    String                @db.VarChar(160)
+  byteSize    BigInt
+  sha256      String                @db.Char(64)
+  disposition AttachmentDisposition
+  entryId     String?               @db.Uuid
+  tagPostId   String?               @db.Uuid
+  uploadedById String               @db.Uuid
+  createdAt   DateTime              @default(now()) @db.Timestamptz(3)
+  entry       Entry?                @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  tagPost     TagPost?              @relation(fields: [tagPostId], references: [id], onDelete: Cascade)
+  uploadedBy  User                  @relation("AttachmentUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([entryId])
+  @@index([tagPostId])
+  @@index([uploadedById])
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @db.Uuid
+  action      String   @db.VarChar(120)
+  entityType  String   @db.VarChar(120)
+  entityId    String   @db.VarChar(160)
+  before      Json?
+  after       Json?
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorUserId])
+}
+
+model AppSetting {
+  key             String   @id @db.VarChar(120)
+  value           Json
+  updatedByUserId String?  @db.Uuid
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
+  updatedBy       User?    @relation("SettingUpdater", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+}

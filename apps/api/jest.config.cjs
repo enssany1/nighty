@@ -1,7 +1,7 @@
 module.exports = {
   rootDir: ".",
   testEnvironment: "node",
-  testMatch: ["**/*.spec.ts"],
+  testMatch: ["**/*.spec.ts", "**/*-spec.ts"],
   transform: {
     "^.+\\.tsx?$": ["@swc/jest", {
       jsc: {
