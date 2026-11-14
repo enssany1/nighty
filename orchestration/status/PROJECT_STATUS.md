@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 15 November 2026, 01:15 +04
+**Updated:** 15 November 2026, 01:45 +04
 
-**Phase:** Production implementation (TASK-013 checkpoint)
+**Phase:** Production implementation (TASK-014 checkpoint)
 
 **State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-013 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Thirteen of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-014 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Fourteen of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -89,6 +89,10 @@ TASK-013 added the compact calendar/Tags sidebar, adjacent scrollable daily canv
 
 Checkpoint evidence: docs/implementation/TASK-013-CHECKPOINT.md.
 
+TASK-014 added the selected administration sidebar, Back to operations, Users/Shifts/Tags inspectors, General/Security/Retention forms and confirmations, and immutable Audit filtering/evidence inspection.
+
+Checkpoint evidence: docs/implementation/TASK-014-CHECKPOINT.md.
+
 ## Correction of the previous status
 
 The previous revision of this file labeled ORCH-001 through ORCH-009 as "Completed and checkpointed" and described the missing DeepSeek credential as the only blocker. That was not supported by evidence. Those items were isolated, unit-tested primitives; no integrated foreground runner, independent review, or checkpoint had been exercised. `TASK_STATUS.json` has been corrected to match.
@@ -163,4 +167,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-013 locally and begin TASK-014 selected administration workspace. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Checkpoint TASK-014 locally and begin TASK-015 accessibility, deployment, backup/restore, real-browser, and release gates. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.

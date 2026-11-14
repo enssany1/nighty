@@ -1,0 +1,15 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { SettingsWorkspace } from "./SettingsWorkspace";
+
+const reply = (body: unknown) => Promise.resolve(new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }));
+afterEach(() => vi.restoreAllMocks());
+describe("selected administration experience", () => {
+  it("offers all seven sections and explicitly permits overlapping shifts", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((request) => { const url=String(request); if(url.includes("/settings"))return reply({general:{applicationName:"Nighty",subtitle:"Shift Operations Handover",timezone:"Asia/Muscat",dateFormat:"DD MMM YYYY",timeFormat:"24-hour",defaultLanding:"current-operational-day"},security:{sessionIdleMinutes:30,passwordMinLength:12},retention:{retentionDays:365,attachmentRetention:"follows-parent"}}); if(url.includes("/users"))return reply([{id:"u1",username:"aisha",displayName:"Aisha",role:"ADMIN",status:"ACTIVE",shiftIds:["s1"],mustChangePassword:false}]); if(url.includes("/shifts"))return reply([{id:"s1",name:"Morning",startMinute:420,endMinute:900,position:1,active:true}]); if(url.includes("/tags"))return reply([]); if(url.includes("/audit"))return reply({items:[]}); return reply({}); });
+    render(<SettingsWorkspace onBack={()=>undefined}/>); for(const label of ["General","Users","Shifts","Tags","Security","Retention","Audit"]) expect(screen.getByRole("button",{name:label})).toBeInTheDocument(); fireEvent.click(screen.getByRole("button",{name:"Shifts"})); expect(await screen.findByText(/Shifts may overlap/)).toBeInTheDocument(); expect(screen.getByText(/blocked only when.*uncovered/i)).toBeInTheDocument(); fireEvent.click(screen.getByText("Morning")); expect(await screen.findByText(/Overlap is allowed/)).toBeInTheDocument();
+  });
+  it("shows the fixed 30-minute session policy and one-year retention default", async () => {
+    vi.spyOn(globalThis,"fetch").mockImplementation((request)=>{const url=String(request);if(url.includes("/settings"))return reply({general:{applicationName:"Nighty",subtitle:"Shift Operations Handover",timezone:"Asia/Muscat",dateFormat:"DD MMM YYYY",timeFormat:"24-hour",defaultLanding:"current-operational-day"},security:{sessionIdleMinutes:30,passwordMinLength:12},retention:{retentionDays:365,attachmentRetention:"follows-parent"}});if(url.includes("/audit"))return reply({items:[]});return reply([]);}); render(<SettingsWorkspace onBack={()=>undefined}/>); fireEvent.click(screen.getByRole("button",{name:"Security"})); expect(await screen.findByDisplayValue("30 minutes")).toBeInTheDocument(); fireEvent.click(screen.getByRole("button",{name:"Retention"})); expect(await screen.findByDisplayValue("365")).toBeInTheDocument(); expect(screen.getByRole("button",{name:"Preview cleanup"})).toBeInTheDocument(); expect(screen.getByRole("button",{name:"Run permanent cleanup"})).toBeInTheDocument();
+  });
+});
