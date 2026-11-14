@@ -66,3 +66,19 @@ test("supervisor rejects output beyond the configured cap", async () => {
     /process output exceeded 128 bytes/,
   );
 });
+
+test("supervisor delivers bounded instructions through stdin", async () => {
+  const result = await runOwnedProcess({
+    executable: process.execPath,
+    args: ["-e", "process.stdin.pipe(process.stdout)"],
+    cwd: process.cwd(),
+    allowedExecutables: [process.execPath],
+    timeoutMs: 2_000,
+    maxOutputBytes: 1024,
+    environment: {},
+    stdin: "task instructions",
+  });
+
+  assert.equal(result.stdout, "task instructions");
+  assert.equal(result.exitCode, 0);
+});

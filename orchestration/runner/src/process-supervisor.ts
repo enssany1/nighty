@@ -10,6 +10,7 @@ export type ProcessRequest = {
   timeoutMs: number;
   maxOutputBytes: number;
   environment: Record<string, string>;
+  stdin?: string;
 };
 
 export type ProcessResult = {
@@ -44,7 +45,7 @@ export async function runOwnedProcess(request: ProcessRequest): Promise<ProcessR
       env: request.environment,
       shell: false,
       windowsHide: true,
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: ["pipe", "pipe", "pipe"],
     });
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
@@ -64,6 +65,7 @@ export async function runOwnedProcess(request: ProcessRequest): Promise<ProcessR
     };
     child.stdout.on("data", (chunk: Buffer) => collect(stdout, chunk));
     child.stderr.on("data", (chunk: Buffer) => collect(stderr, chunk));
+    child.stdin.end(request.stdin ?? "");
 
     const timeout = setTimeout(() => {
       timedOut = true;
