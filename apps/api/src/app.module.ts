@@ -9,9 +9,11 @@ import { TagsModule } from "./tags/tags.module";
 import { AttachmentsModule } from "./attachments/attachments.module";
 import { AuditModule } from "./audit/audit.module";
 import { SettingsModule } from "./settings/settings.module";
+import { SearchModule } from "./search/search.module";
+import { RetentionModule } from "./retention/retention.module";
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UsersModule, ShiftsModule, EntriesModule, TagsModule, AttachmentsModule, AuditModule, SettingsModule],
+  imports: [DatabaseModule, AuthModule, UsersModule, ShiftsModule, EntriesModule, TagsModule, AttachmentsModule, AuditModule, SettingsModule, SearchModule, RetentionModule],
   controllers: [HealthController]
 })
 export class AppModule {}

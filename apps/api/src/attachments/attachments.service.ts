@@ -4,6 +4,7 @@ import path from "node:path";
 import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type { UserRole } from "../generated/prisma/client";
 import { PrismaService } from "../database/prisma.service";
+import { attachmentPath, attachmentRoot } from "../common/storage/local-storage";
 
 export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
@@ -30,10 +31,6 @@ export function sniffMime(buffer: Buffer): string {
   throw new BadRequestException("Unsupported attachment content");
 }
 
-function rootPath(): string {
-  return path.resolve(process.env.ATTACHMENTS_PATH?.trim() || path.join(process.cwd(), "data", "attachments"));
-}
-
 function publicAttachment(attachment: { id: string; originalName: string; mimeType: string; byteSize: bigint; disposition: string }) {
   return {
     id: attachment.id,
@@ -47,7 +44,7 @@ function publicAttachment(attachment: { id: string; originalName: string; mimeTy
 
 @Injectable()
 export class AttachmentsService {
-  private readonly root = rootPath();
+  private readonly root = attachmentRoot();
 
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
@@ -71,8 +68,8 @@ export class AttachmentsService {
 
     await mkdir(this.root, { recursive: true });
     const storageKey = randomBytes(32).toString("hex");
-    const temporaryPath = path.join(this.root, `${storageKey}.tmp`);
-    const finalPath = path.join(this.root, storageKey);
+    const temporaryPath = attachmentPath(storageKey, true);
+    const finalPath = attachmentPath(storageKey);
     await writeFile(temporaryPath, input.file.buffer, { flag: "wx" });
     let attachment;
     try {
@@ -115,11 +112,11 @@ export class AttachmentsService {
   async download(id: string) {
     const attachment = await this.prisma.attachment.findUnique({ where: { id } });
     if (!attachment) throw new NotFoundException("Attachment not found");
-    const finalPath = path.join(this.root, attachment.storageKey);
+    const finalPath = attachmentPath(attachment.storageKey);
     try {
       await access(finalPath);
     } catch {
-      await rename(path.join(this.root, `${attachment.storageKey}.tmp`), finalPath).catch(() => undefined);
+      await rename(attachmentPath(attachment.storageKey, true), finalPath).catch(() => undefined);
     }
     const data = await readFile(finalPath).catch(() => { throw new NotFoundException("Attachment content is unavailable"); });
     if (createHash("sha256").update(data).digest("hex") !== attachment.sha256) throw new NotFoundException("Attachment content is unavailable");

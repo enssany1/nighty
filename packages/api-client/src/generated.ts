@@ -290,6 +290,20 @@ export interface paths {
       response: unknown;
     };
   };
+  "/api/retention/preview": {
+    get: {
+      operationId: "RetentionController_preview";
+      request: unknown;
+      response: unknown;
+    };
+  };
+  "/api/retention/run": {
+    post: {
+      operationId: "RetentionController_run";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/search": {
     get: {
       operationId: "search_list";

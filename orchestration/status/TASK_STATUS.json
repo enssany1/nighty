@@ -1,12 +1,12 @@
 {
   "schema": "nighty.task-status/v1",
-  "generatedAt": "2026-11-14T23:45:00+04:00",
+  "generatedAt": "2026-11-15T00:15:00+04:00",
   "projectState": "APPLICATION_IMPLEMENTATION_ACTIVE",
   "activeTaskId": null,
   "runnerOwner": null,
   "acceptedPlanTasks": 0,
   "plannedTasks": 10,
-  "applicationAcceptedTasks": 10,
+  "applicationAcceptedTasks": 11,
   "applicationPlannedTasks": 15,
   "tasks": [
     {
@@ -230,6 +230,16 @@
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-010-CHECKPOINT.md",
+      "remainingAcceptance": []
+    },
+    {
+      "taskId": "TASK-011",
+      "revision": 1,
+      "attempt": "DIRECT-CODEX",
+      "state": "CHECKPOINT_READY",
+      "accepted": true,
+      "reviewPending": false,
+      "checkpoint": "docs/implementation/TASK-011-CHECKPOINT.md",
       "remainingAcceptance": []
     }
   ]

@@ -48,6 +48,12 @@ enum TagStatus {
   ARCHIVED
 }
 
+enum RetentionState {
+  ACTIVE
+  MARKED
+  FAILED
+}
+
 model User {
   id                 String             @id @default(uuid()) @db.Uuid
   username           String             @unique @db.VarChar(80)
@@ -113,7 +119,12 @@ model OperationalDay {
   operationalDate   DateTime        @unique @db.Date
   boundaryMinute    Int
   createdAt         DateTime        @default(now()) @db.Timestamptz(3)
+  retentionState    RetentionState  @default(ACTIVE)
+  retentionMarkedAt DateTime?       @db.Timestamptz(3)
+  retentionError    String?
   shiftInstances    ShiftInstance[]
+
+  @@index([retentionState, operationalDate])
 }
 
 model ShiftInstance {

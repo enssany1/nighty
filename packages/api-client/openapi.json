@@ -741,6 +741,56 @@
         ]
       }
     },
+    "/api/search": {
+      "get": {
+        "operationId": "search_list",
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/retention/preview": {
+      "get": {
+        "operationId": "RetentionController_preview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Retention"
+        ]
+      }
+    },
+    "/api/retention/run": {
+      "post": {
+        "operationId": "RetentionController_run",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Retention"
+        ]
+      }
+    },
     "/api/canvas/{operationalDate}": {
       "get": {
         "operationId": "canvas_get",
@@ -778,28 +828,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HandoverResponseDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/search": {
-      "get": {
-        "operationId": "search_list",
-        "security": [
-          {
-            "nighty_session": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchResponseDto"
                 }
               }
             }
