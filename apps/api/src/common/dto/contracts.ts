@@ -35,6 +35,16 @@ export class LoginRequestDto {
   password!: string;
 }
 
+export class ChangePasswordRequestDto {
+  @ApiProperty({ type: String, minLength: 8, writeOnly: true })
+  @IsString() @MinLength(8)
+  currentPassword!: string;
+
+  @ApiProperty({ type: String, minLength: 12, writeOnly: true })
+  @IsString() @MinLength(12)
+  newPassword!: string;
+}
+
 export class SessionResponseDto {
   @ApiProperty({ type: String, format: "uuid" }) @IsUUID() userId!: string;
   @ApiProperty({ type: String }) @IsString() displayName!: string;
@@ -174,7 +184,7 @@ export class AuditEventResponseDto {
 }
 
 export const NIGHTY_OPENAPI_MODELS = [
-  LoginRequestDto, SessionResponseDto, UserResponseDto, CreateUserRequestDto,
+  LoginRequestDto, ChangePasswordRequestDto, SessionResponseDto, UserResponseDto, CreateUserRequestDto,
   ShiftDefinitionResponseDto, SaveShiftDefinitionRequestDto, TodoItemDto,
   EntryResponseDto, CreateEntryRequestDto, ShiftCanvasDto, CanvasResponseDto,
   HandoverResponseDto, TagResponseDto, SaveTagRequestDto, AttachmentResponseDto,

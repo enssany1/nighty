@@ -24,6 +24,10 @@ export interface components {
       "operationalDate": string;
       "shifts": Array<components["schemas"]["ShiftCanvasDto"]>;
     };
+    "ChangePasswordRequestDto": {
+      "currentPassword": string;
+      "newPassword": string;
+    };
     "CreateEntryRequestDto": {
       "type": "UPDATE" | "TODO" | "FOLLOW";
       "editorDocument": Record<string, unknown>;
@@ -143,11 +147,25 @@ export interface paths {
       response: components["schemas"]["AuditEventResponseDto"];
     };
   };
+  "/api/auth/change-password": {
+    post: {
+      operationId: "AuthController_changePassword";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/auth/login": {
     post: {
       operationId: "auth_login";
       request: components["schemas"]["LoginRequestDto"];
       response: components["schemas"]["SessionResponseDto"];
+    };
+  };
+  "/api/auth/logout": {
+    post: {
+      operationId: "AuthController_logout";
+      request: unknown;
+      response: unknown;
     };
   };
   "/api/auth/me": {
@@ -240,6 +258,7 @@ export interface paths {
 export type AttachmentResponseDto = components["schemas"]["AttachmentResponseDto"];
 export type AuditEventResponseDto = components["schemas"]["AuditEventResponseDto"];
 export type CanvasResponseDto = components["schemas"]["CanvasResponseDto"];
+export type ChangePasswordRequestDto = components["schemas"]["ChangePasswordRequestDto"];
 export type CreateEntryRequestDto = components["schemas"]["CreateEntryRequestDto"];
 export type CreateUserRequestDto = components["schemas"]["CreateUserRequestDto"];
 export type EntryResponseDto = components["schemas"]["EntryResponseDto"];

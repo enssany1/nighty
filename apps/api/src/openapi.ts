@@ -1,10 +1,15 @@
-import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule, type OpenAPIObject } from "@nestjs/swagger";
+import { Test } from "@nestjs/testing";
 import { AppModule } from "./app.module";
 import { NIGHTY_OPENAPI_MODELS } from "./common/dto/contracts";
+import { PrismaService } from "./database/prisma.service";
 
 export async function createOpenApiDocument(): Promise<OpenAPIObject> {
-  const app = await NestFactory.create(AppModule, { logger: false });
+  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(PrismaService)
+    .useValue({})
+    .compile();
+  const app = moduleRef.createNestApplication({ logger: false });
   app.setGlobalPrefix("api");
   await app.init();
   try {

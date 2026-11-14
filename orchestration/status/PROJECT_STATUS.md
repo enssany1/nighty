@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 14 November 2026, 21:35 +04
+**Updated:** 14 November 2026, 21:55 +04
 
-**Phase:** Production implementation (TASK-003 checkpoint)
+**Phase:** Production implementation (TASK-004 checkpoint)
 
 **State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-003 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Three of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-004 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Four of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -42,6 +42,16 @@ TASK-003 added:
 - Passing contract, generation-cleanliness, typecheck, build, and production dependency gates.
 
 Checkpoint evidence: docs/implementation/TASK-003-CHECKPOINT.md.
+
+TASK-004 added:
+
+- Argon2id password verification with generic invalid-credential behavior.
+- Digest-only 256-bit opaque session and CSRF values.
+- Thirty-minute sliding inactivity expiry that never extends expired sessions.
+- Production-secure HttpOnly session cookies, CSRF rotation/enforcement, and logout invalidation.
+- Global fail-closed session, CSRF, and ADMIN/OPERATOR role guards.
+
+Checkpoint evidence: docs/implementation/TASK-004-CHECKPOINT.md.
 
 ## Correction of the previous status
 
@@ -117,4 +127,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-003 locally and begin TASK-004 secure sessions, CSRF, and role authorization. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Checkpoint TASK-004 locally and begin TASK-005 users and profile administration. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.

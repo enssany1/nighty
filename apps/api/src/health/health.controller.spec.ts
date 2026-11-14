@@ -3,18 +3,22 @@ import { Test } from "@nestjs/testing";
 import type { INestApplication } from "@nestjs/common";
 import request from "supertest";
 import { AppModule } from "../app.module";
+import { PrismaService } from "../database/prisma.service";
 
 describe("health boundary", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(PrismaService)
+      .useValue({})
+      .compile();
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix("api");
     await app.init();
   });
 
-  afterAll(async () => app.close());
+  afterAll(async () => { if (app) await app.close(); });
 
   it("returns the stable health payload", async () => {
     await request(app.getHttpServer())

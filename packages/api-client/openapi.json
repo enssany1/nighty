@@ -65,6 +65,44 @@
         }
       }
     },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "operationId": "AuthController_changePassword",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
     "/api/users": {
       "get": {
         "operationId": "users_list",
@@ -419,6 +457,25 @@
         "required": [
           "username",
           "password"
+        ]
+      },
+      "ChangePasswordRequestDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 8,
+            "writeOnly": true
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 12,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
         ]
       },
       "SessionResponseDto": {
