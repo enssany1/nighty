@@ -1,0 +1,19 @@
+{
+  "schema": "nighty.task-status/v1",
+  "generatedAt": "2026-11-14T18:50:00+04:00",
+  "projectState": "BLOCKED_EXTERNAL_DEPENDENCY",
+  "activeTaskId": null,
+  "runnerOwner": null,
+  "tasks": [
+    { "taskId": "ORCH-001", "state": "CHECKPOINTED" },
+    { "taskId": "ORCH-002", "state": "CHECKPOINTED" },
+    { "taskId": "ORCH-003", "state": "CHECKPOINTED" },
+    { "taskId": "ORCH-004", "state": "CHECKPOINTED" },
+    { "taskId": "ORCH-005", "state": "CHECKPOINTED" },
+    { "taskId": "ORCH-006", "state": "BLOCKED", "reason": "DEEPSEEK_API_KEY unavailable; live provider pilot not run" },
+    { "taskId": "ORCH-007", "state": "CHECKPOINTED" },
+    { "taskId": "ORCH-008", "state": "CHECKPOINTED" },
+    { "taskId": "ORCH-009", "state": "CHECKPOINTED" },
+    { "taskId": "ORCH-010", "state": "BLOCKED", "reason": "depends on live ORCH-006 DeepSeek pilot" }
+  ]
+}

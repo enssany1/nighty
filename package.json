@@ -7,6 +7,7 @@
     "node": ">=24.0.0"
   },
   "scripts": {
+    "check": "npm run typecheck && npm test",
     "test": "node --disable-warning=ExperimentalWarning --test orchestration/runner/test/*.test.ts",
     "test:orchestration": "node --disable-warning=ExperimentalWarning --test orchestration/runner/test/*.test.ts",
     "typecheck": "tsc -p orchestration/runner/tsconfig.json --noEmit"
