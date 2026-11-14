@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 14 November 2026, 21:55 +04
+**Updated:** 14 November 2026, 22:10 +04
 
-**Phase:** Production implementation (TASK-004 checkpoint)
+**Phase:** Production implementation (TASK-005 checkpoint)
 
 **State:** APPLICATION_IMPLEMENTATION_ACTIVE
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-004 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Four of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-005 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. Five of 15 production tasks are accepted. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
 
 ## Application implementation authorization and status
 
@@ -52,6 +52,10 @@ TASK-004 added:
 - Global fail-closed session, CSRF, and ADMIN/OPERATOR role guards.
 
 Checkpoint evidence: docs/implementation/TASK-004-CHECKPOINT.md.
+
+TASK-005 added normalized immutable users, multi-shift assignment, transactional administrator invariants, temporary-password resets, profile updates, session revocation, and password-safe audit evidence.
+
+Checkpoint evidence: docs/implementation/TASK-005-CHECKPOINT.md.
 
 ## Correction of the previous status
 
@@ -127,4 +131,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Checkpoint TASK-004 locally and begin TASK-005 users and profile administration. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.
+Checkpoint TASK-005 locally and begin TASK-006 shift coverage and operational-day materialization. Continue to keep the orchestration runner inactive and its remaining acceptance criteria explicit.

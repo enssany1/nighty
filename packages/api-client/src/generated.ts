@@ -114,11 +114,23 @@ export interface components {
       "position": number;
       "archived": boolean;
     };
+    "TemporaryPasswordResponseDto": {
+      "temporaryPassword": string;
+    };
     "TodoItemDto": {
       "id"?: string;
       "text": string;
       "completed"?: boolean;
       "position": number;
+    };
+    "UpdateProfileRequestDto": {
+      "displayName": string;
+    };
+    "UpdateUserRequestDto": {
+      "displayName"?: string;
+      "role"?: "ADMIN" | "OPERATOR";
+      "status"?: "ACTIVE" | "DISABLED";
+      "shiftIds"?: Array<string>;
     };
     "UserResponseDto": {
       "id": string;
@@ -189,6 +201,18 @@ export interface paths {
       response: unknown;
     };
   };
+  "/api/profile": {
+    get: {
+      operationId: "ProfileController_get";
+      request: unknown;
+      response: unknown;
+    };
+    patch: {
+      operationId: "ProfileController_update";
+      request: unknown;
+      response: unknown;
+    };
+  };
   "/api/search": {
     get: {
       operationId: "search_list";
@@ -253,6 +277,20 @@ export interface paths {
       response: components["schemas"]["UserResponseDto"];
     };
   };
+  "/api/users/{id}": {
+    patch: {
+      operationId: "UsersController_update";
+      request: unknown;
+      response: unknown;
+    };
+  };
+  "/api/users/{id}/reset-password": {
+    post: {
+      operationId: "UsersController_resetPassword";
+      request: unknown;
+      response: unknown;
+    };
+  };
 }
 
 export type AttachmentResponseDto = components["schemas"]["AttachmentResponseDto"];
@@ -273,5 +311,8 @@ export type SettingResponseDto = components["schemas"]["SettingResponseDto"];
 export type ShiftCanvasDto = components["schemas"]["ShiftCanvasDto"];
 export type ShiftDefinitionResponseDto = components["schemas"]["ShiftDefinitionResponseDto"];
 export type TagResponseDto = components["schemas"]["TagResponseDto"];
+export type TemporaryPasswordResponseDto = components["schemas"]["TemporaryPasswordResponseDto"];
 export type TodoItemDto = components["schemas"]["TodoItemDto"];
+export type UpdateProfileRequestDto = components["schemas"]["UpdateProfileRequestDto"];
+export type UpdateUserRequestDto = components["schemas"]["UpdateUserRequestDto"];
 export type UserResponseDto = components["schemas"]["UserResponseDto"];

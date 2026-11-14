@@ -16,7 +16,7 @@ import {
   MinLength,
   ValidateNested,
 } from "class-validator";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 
 export enum UserRoleDto { ADMIN = "ADMIN", OPERATOR = "OPERATOR" }
 export enum UserStatusDto { ACTIVE = "ACTIVE", DISABLED = "DISABLED" }
@@ -64,10 +64,25 @@ export class UserResponseDto {
 }
 
 export class CreateUserRequestDto {
-  @ApiProperty({ type: String }) @Matches(/^[a-z0-9][a-z0-9._-]{2,79}$/) username!: string;
+  @ApiProperty({ type: String }) @Transform(({ value }) => typeof value === "string" ? value.trim().toLowerCase() : value) @Matches(/^[a-z0-9][a-z0-9._-]{2,79}$/) username!: string;
   @ApiProperty({ type: String }) @IsString() @Length(1, 160) displayName!: string;
   @ApiProperty({ enum: UserRoleDto }) @IsEnum(UserRoleDto) role!: UserRoleDto;
   @ApiProperty({ type: [String], format: "uuid" }) @IsArray() @IsUUID("4", { each: true }) shiftIds!: string[];
+}
+
+export class UpdateUserRequestDto {
+  @ApiPropertyOptional({ type: String }) @IsOptional() @IsString() @Length(1, 160) displayName?: string;
+  @ApiPropertyOptional({ enum: UserRoleDto }) @IsOptional() @IsEnum(UserRoleDto) role?: UserRoleDto;
+  @ApiPropertyOptional({ enum: UserStatusDto }) @IsOptional() @IsEnum(UserStatusDto) status?: UserStatusDto;
+  @ApiPropertyOptional({ type: [String], format: "uuid" }) @IsOptional() @IsArray() @IsUUID("4", { each: true }) shiftIds?: string[];
+}
+
+export class UpdateProfileRequestDto {
+  @ApiProperty({ type: String }) @IsString() @Length(1, 160) displayName!: string;
+}
+
+export class TemporaryPasswordResponseDto {
+  @ApiProperty({ type: String, writeOnly: true }) @IsString() temporaryPassword!: string;
 }
 
 export class ShiftDefinitionResponseDto {
@@ -185,6 +200,7 @@ export class AuditEventResponseDto {
 
 export const NIGHTY_OPENAPI_MODELS = [
   LoginRequestDto, ChangePasswordRequestDto, SessionResponseDto, UserResponseDto, CreateUserRequestDto,
+  UpdateUserRequestDto, UpdateProfileRequestDto, TemporaryPasswordResponseDto,
   ShiftDefinitionResponseDto, SaveShiftDefinitionRequestDto, TodoItemDto,
   EntryResponseDto, CreateEntryRequestDto, ShiftCanvasDto, CanvasResponseDto,
   HandoverResponseDto, TagResponseDto, SaveTagRequestDto, AttachmentResponseDto,
