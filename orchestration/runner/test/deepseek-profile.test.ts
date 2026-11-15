@@ -29,6 +29,11 @@ test("DeepSeek profile reads the credential from an environment variable", () =>
   assert.doesNotMatch(config, /sk-[A-Za-z0-9]/);
 });
 
+test("DeepSeek profile disables autonomous shell commands", () => {
+  const config = renderDeepSeekConfig();
+  assert.match(config, /\[features\]\nshell_tool = false/);
+});
+
 test("DeepSeek environment is allowlisted and includes the explicit key", () => {
   const environment = buildDeepSeekEnvironment({
     PATH: "tools",

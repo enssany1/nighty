@@ -1,16 +1,16 @@
 # Nighty Project Status
 
-**Updated:** 15 November 2026, 09:25 +04
+**Updated:** 15 November 2026, 11:28 +04
 
-**Phase:** Production application delivered locally; live-provider orchestration proof pending
+**Phase:** Production application delivered locally; orchestration technical evidence complete and human sign-off pending
 
-**State:** APPLICATION_READY_AND_ORCHESTRATION_LIVE_PILOT_PENDING
+**State:** APPLICATION_READY_AND_ORCHESTRATION_SIGNOFF_PENDING
 
-**Progress:** TASK-901 A03 and TASK-001 through TASK-015 are checkpointed. ORCH-001 through ORCH-004 and ORCH-007 through ORCH-009 meet their deterministic acceptance criteria. ORCH-005 and ORCH-006 implementations are complete but still require real Codex/DeepSeek evidence. ORCH-010's disposable one-correction foreground pilot passes, including checkpoint and restart, but its live-provider/human observation criteria remain open. The runner remains inactive and no push, merge, deployment, service, or scheduled task was created.
+**Progress:** TASK-901 A03 and TASK-001 through TASK-015 are checkpointed. ORCH-001 through ORCH-009 meet their technical acceptance criteria. Real synthetic Codex and DeepSeek proofs are recorded in `orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md`; the unsafe standalone DeepSeek desktop GUI is explicitly excluded from activation. ORCH-010's disposable one-correction foreground pilot passes, including checkpoint and restart, and its live-provider technical evidence is complete. Human evidence sign-off and the separate activation decision remain open. The runner remains inactive and no push, merge, deployment, service, or scheduled task was created.
 
 ## Application implementation authorization and status
 
-The owner explicitly authorized Codex to continue independently and unattended until the project is delivered. The exact manual activation decision is recorded in orchestration/status/ACTIVATION_DECISION.md. This is a direct foreground implementation path: it does not claim a DeepSeek-authored delivery, an independent runner review, or technical acceptance of ORCH-001 through ORCH-010.
+The owner explicitly authorized Codex to continue independently and unattended until the project is delivered. The exact direct-implementation decision is recorded in `orchestration/status/ACTIVATION_DECISION.md`. The application checkpoints remain direct Codex work and are not relabeled as DeepSeek deliveries or independent runner reviews. Orchestration acceptance is supported separately by deterministic runner evidence and `orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md`.
 
 TASK-001 established and verified:
 
@@ -103,8 +103,8 @@ An earlier revision overclaimed ORCH acceptance before the integrated foreground
 
 Two distinct limitations remain:
 
-1. ORCH-005 and ORCH-006 still require approved live synthetic provider runs; ORCH-010 still requires that live evidence and the explicit activation decision.
-2. The foreground runner is tested but remains deliberately inactive. Deterministic provider doubles do not establish live Codex or DeepSeek behavior.
+1. ORCH-010 still requires the human owner to review/sign off the live evidence and separately decide whether to activate the foreground runner.
+2. The foreground runner is tested but remains deliberately inactive. The standalone DeepSeek desktop GUI is not an authorized substitute for the isolated production profile.
 
 ## TASK-901 status
 
@@ -112,7 +112,7 @@ Two distinct limitations remain:
 - A02 was independently reviewed as `CHANGES_REQUIRED` in `orchestration/reviews/TASK-901-A02-REVIEW.md`: the reconciler supplied ownership per run, but `CodexAdapter` ignored that invocation callback.
 - A03 confirms Codex's local adapter forwarding correction, strengthens the real-adapter/reconciler regression to prove the run and lease PID (and the actual spawned provider PID) before provider completion, and is independently `APPROVED` in `orchestration/reviews/TASK-901-A03-REVIEW.md`.
 - The exact reviewed TASK-901 inventory is checkpointed on `codex/orchestration-foundation`. No merge, push, deployment, service, or scheduled task was created.
-- A live Codex or DeepSeek invocation was **not** run.
+- Live synthetic Codex and DeepSeek invocations were run only in disposable repositories outside Nighty; see `orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md`.
 - A01/A02 deliveries and reviews are preserved.
 
 ## Implemented and unit-tested under TASK-901
@@ -132,7 +132,7 @@ Two distinct limitations remain:
 - Bounded task-prompt reads, invalid-UTF-8 rejection, and control-artifact reparse-point rejection.
 - Credential redaction in captured process output, adapter errors, persisted state reasons, and rejected structured output.
 - Verification-registry sealing and fail-closed finalization.
-- Dedicated runner-owned DeepSeek `CODEX_HOME` preparation that requires no credential and rejects shared/ambient user configuration.
+- Dedicated runner-owned DeepSeek `CODEX_HOME` preparation that requires no credential, rejects shared/ambient user configuration, and disables the autonomous shell tool.
 
 ## ORCH plan acceptance status
 
@@ -142,17 +142,17 @@ Two distinct limitations remain:
 | ORCH-002 | Accepted | Reopened SQLite preservation, regenerated projections, and owner/lease concurrency. |
 | ORCH-003 | Accepted | Exclusive foreground lock, watcher wakeups, 30-second polling default, atomic rename, and conflict quarantine. |
 | ORCH-004 | Accepted | Heartbeats, exact owned-process restart recovery, cleanup retry, and late-output quarantine. |
-| ORCH-005 | Live proof pending | Structured Codex adapter, canonical artifact bridge, mandatory review evidence, and authenticated CLI are ready; real synthetic task/review and isolated auth-failure evidence remain. |
-| ORCH-006 | Live proof pending | Isolated DeepSeek profile/credential boundary is ready; real synthetic task, model identity, boundary denial, and post-run secret scan remain. |
+| ORCH-005 | Accepted | Authenticated real `CodexAdapter` delivery/review outputs passed local schemas; isolated unauthenticated execution failed closed. |
+| ORCH-006 | Accepted | Real DeepSeek synthetic TDD delivery, model identity, out-of-root denial, diff verification, sentinel preservation, secret scan, and runner-owned `shell_tool = false` boundary are recorded. The desktop GUI is excluded from activation. |
 | ORCH-007 | Accepted | Clean-baseline gate, exact approved inventory, Conventional Commit, branch/source drift, commit failure, and duplicate prevention. |
 | ORCH-008 | Accepted | Sealed command registry and exact PASSED/FAILED/UNVERIFIED claim-versus-reality validation, including injection tests. |
 | ORCH-009 | Accepted | Complete documented recovery matrix in `orchestration/acceptance/RECOVERY_MATRIX.md`. |
-| ORCH-010 | Deterministic pilot passed; live proof pending | A01 changes required, A02 approved, one checkpoint, SQLite reopen, foreground restart, and no duplicate commit pass. Live providers and explicit activation decision remain. |
+| ORCH-010 | Technical evidence complete; human sign-off pending | A01 changes required, A02 approved, one checkpoint, SQLite reopen, foreground restart, no duplicate commit, and real provider proofs pass. Human evidence sign-off and explicit activation remain. |
 
 ## Verification evidence
 
 - `npm run typecheck`: exit 0 across the runner and all production workspaces.
-- `npm run check`: exit 0 (141 orchestration, 5 bootstrap-policy, 26 API unit, 10 web, and generated-client tests).
+- `npm run check`: exit 0 (142 orchestration, 5 bootstrap-policy, 26 API unit, 10 web, and generated-client tests).
 - `npm run build --workspaces --if-present`: exit 0.
 - `docker compose config`: exit 0.
 - `docker build -f docker/api.Dockerfile` and `docker build -f docker/web.Dockerfile`: exit 0.
@@ -168,13 +168,14 @@ Two distinct limitations remain:
 
 ## Known limitations
 
-- No live provider invocation occurred through the runner. The deterministic foreground pilot uses controlled producers and is not represented as DeepSeek/Codex provider evidence.
+- Live provider proofs used disposable repositories outside Nighty. No live DeepSeek API-key invocation occurred through Nighty's production adapter.
+- The DeepSeek desktop Harness ignored a project-local shell override and launched a fresh full-access session; it is explicitly excluded from activation.
 - The foreground runner is acceptance-tested but remains deliberately inactive outside disposable tests.
 - Localized Windows `taskkill` output and a forced cleanup-failure retry remain unexercised; cleanup evidence records `remainingPids`, `deadlineExceeded`, and `failures`.
 - Windows descendant liveness is tracked by a bounded polling window while the root is alive; a descendant that both survives and starts after the final poll could escape discovery. The recorded run/lease PID and cleanup evidence remain explicit.
 - Task-content authority is a SHA-256 of the exact task file; changing task contents without a revision bump is rejected at review ingestion and checkpoint.
-- No live provider ever handled a credential during this task; redaction was proven with synthetic values only.
+- No credential was read, displayed, persisted, or sent by the acceptance workflow; redaction remains proven with synthetic values only.
 
 ## Next required action
 
-Obtain action-time approval to send a non-sensitive synthetic task to the already-open DeepSeek Harness and authenticated Codex service. Run the two live disposable proofs, inspect artifacts/logs/state for secret absence, record the activation decision, then perform the final human-owned readiness review. Keep the orchestration runner inactive until that evidence is complete.
+The human owner must review `orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md`, sign off ORCH-010, and separately decide whether to activate the foreground runner. Keep the runner inactive until that decision; activation is not required to use the already-running Nighty application locally.

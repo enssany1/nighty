@@ -1,10 +1,10 @@
 {
   "schema": "nighty.task-status/v1",
-  "generatedAt": "2026-11-15T09:25:00+04:00",
-  "projectState": "APPLICATION_READY_AND_ORCHESTRATION_LIVE_PILOT_PENDING",
+  "generatedAt": "2026-11-15T11:28:00+04:00",
+  "projectState": "APPLICATION_READY_AND_ORCHESTRATION_SIGNOFF_PENDING",
   "activeTaskId": null,
   "runnerOwner": null,
-  "acceptedPlanTasks": 7,
+  "acceptedPlanTasks": 9,
   "plannedTasks": 10,
   "applicationAcceptedTasks": 15,
   "applicationPlannedTasks": 15,
@@ -35,25 +35,17 @@
     },
     {
       "taskId": "ORCH-005",
-      "state": "IMPLEMENTED_LIVE_PROOF_PENDING",
-      "accepted": false,
-      "remainingAcceptance": [
-        "disposable real Codex task and review invocation",
-        "auth-failure behavior",
-        "real review evidence capture"
-      ]
+      "state": "ACCEPTED",
+      "accepted": true,
+      "evidence": "orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md",
+      "remainingAcceptance": []
     },
     {
       "taskId": "ORCH-006",
-      "state": "IMPLEMENTED_LIVE_PROOF_PENDING",
-      "accepted": false,
-      "blockedReason": "live DeepSeek pilot requires action-time approval to transmit a synthetic task to the open provider",
-      "remainingAcceptance": [
-        "live DeepSeek disposable pilot",
-        "model identity proof",
-        "out-of-root edit and unregistered-command denial",
-        "secret-absence scan after a live run"
-      ]
+      "state": "ACCEPTED",
+      "accepted": true,
+      "evidence": "orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md",
+      "remainingAcceptance": []
     },
     {
       "taskId": "ORCH-007",
@@ -75,12 +67,11 @@
     },
     {
       "taskId": "ORCH-010",
-      "state": "DETERMINISTIC_PILOT_PASSED_LIVE_PROOF_PENDING",
+      "state": "TECHNICAL_EVIDENCE_COMPLETE_HUMAN_SIGNOFF_PENDING",
       "accepted": false,
-      "blockedReason": "live provider messages require action-time approval",
+      "evidence": "orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md",
       "remainingAcceptance": [
-        "live DeepSeek and Codex foreground pilot evidence",
-        "live artifact, state, log, and secret review",
+        "human review and sign-off of live provider evidence",
         "explicit activation decision"
       ]
     },
