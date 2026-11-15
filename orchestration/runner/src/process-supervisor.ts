@@ -191,14 +191,22 @@ function snapshotWindowsProcesses(timeoutMs: number): {
   return { entries, failure };
 }
 
-function snapshotWindowsProcessesAsync(timeoutMs: number): Promise<{
+function snapshotWindowsChildrenAsync(rootPid: number, timeoutMs: number): Promise<{
   entries: ProcessEntry[];
   failure: string | null;
 }> {
+  if (!Number.isInteger(rootPid) || rootPid <= 0) {
+    return Promise.resolve({ entries: [], failure: "invalid owned root PID" });
+  }
+  const targetedScript = [
+    'Get-CimInstance Win32_Process -Filter "ParentProcessId = ' + rootPid + '"',
+    "-Property ProcessId,ParentProcessId,Name |",
+    'ForEach-Object { "$($_.ProcessId)|$($_.ParentProcessId)|$($_.Name)" }',
+  ].join(" ");
   return new Promise((resolve) => {
     const process = spawn(
       "powershell.exe",
-      ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", PROCESS_TABLE_SCRIPT],
+      ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", targetedScript],
       {
         windowsHide: true,
         env: helperEnvironment(),
@@ -472,8 +480,13 @@ export async function runOwnedProcess(request: ProcessRequest): Promise<ProcessR
       const pollDescendants = (): void => {
         if (!monitoring) return;
         monitorPromise = (async () => {
-          const snapshot = await snapshotWindowsProcessesAsync(1_500);
-          if (!monitoring) return;
+          // Query only the owned root's direct children. This is materially
+          // cheaper than a full process-table scan under parallel load; once a
+          // direct child is owned, taskkill /T covers its descendants.
+          const snapshot = await snapshotWindowsChildrenAsync(rootPid, 1_500);
+          // A snapshot started while the owned root was live remains valid
+          // ownership evidence even when the root exits before the helper
+          // returns. Keep its descendants; only suppress scheduling a new poll.
           if (snapshot.failure === null) {
             for (const entry of descendantEntries(rootPid, snapshot.entries)) {
               if (!IGNORED_HELPER_NAMES.has(entry.name)) {
@@ -484,7 +497,7 @@ export async function runOwnedProcess(request: ProcessRequest): Promise<ProcessR
           if (monitoring) monitorTimer = setTimeout(pollDescendants, 250);
         })();
       };
-      monitorTimer = setTimeout(pollDescendants, 150);
+      pollDescendants();
     }
 
     const collect = (target: Buffer[], chunk: Buffer): void => {
