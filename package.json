@@ -18,7 +18,8 @@
     "dev:api": "npm run dev -w @nighty/api",
     "dev:web": "npm run dev -w @nighty/web",
     "test": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 orchestration/runner/test/*.test.ts",
-    "test:all": "npm run test:orchestration && npm test --workspaces --if-present",
+    "test:all": "npm run test:orchestration && npm run test:bootstrap && npm test --workspaces --if-present",
+    "test:bootstrap": "node --test scripts/bootstrap-policy.test.mjs",
     "test:e2e": "npm run test:e2e -w @nighty/web",
     "test:orchestration": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 orchestration/runner/test/*.test.ts",
     "typecheck": "tsc -p orchestration/runner/tsconfig.json --noEmit && npm run typecheck --workspaces --if-present"

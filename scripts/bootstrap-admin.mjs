@@ -1,25 +1,26 @@
 import { randomUUID } from "node:crypto";
 import argon2 from "argon2";
 import pg from "pg";
+import { decideBootstrap } from "./bootstrap-policy.mjs";
 
 const username = (process.env.BOOTSTRAP_ADMIN_USERNAME ?? "").trim().toLowerCase();
 const password = process.env.BOOTSTRAP_ADMIN_PASSWORD ?? "";
 const displayName = (process.env.BOOTSTRAP_ADMIN_DISPLAY_NAME ?? "Nighty Administrator").trim();
-if (!username && !password) process.exit(0);
-if (!/^[a-z0-9][a-z0-9._-]{2,79}$/.test(username)) throw new Error("BOOTSTRAP_ADMIN_USERNAME is invalid");
-if (password.length < 12) throw new Error("BOOTSTRAP_ADMIN_PASSWORD must contain at least 12 characters");
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
 
 const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
-await client.connect();
-try {
-  await client.query("BEGIN");
-  const existing = await client.query('SELECT COUNT(*)::int AS count FROM "User"');
-  if (existing.rows[0].count > 0) {
-    await client.query("ROLLBACK");
-    console.log("Nighty bootstrap skipped: users already exist");
-    process.exit(0);
-  }
+
+async function main() {
+  await client.connect();
+  try {
+    await client.query("BEGIN");
+    const existing = await client.query('SELECT COUNT(*)::int AS count FROM "User"');
+    const decision = decideBootstrap({ existingUserCount: existing.rows[0].count, username, password });
+    if (decision === "skip") {
+      await client.query("ROLLBACK");
+      console.log("Nighty bootstrap skipped: users already exist");
+      return;
+    }
   const now = new Date(); const userId = randomUUID();
   const passwordHash = await argon2.hash(password, { type: argon2.argon2id, memoryCost: 19_456, timeCost: 2, parallelism: 1 });
   await client.query('INSERT INTO "User" (id,username,"displayName","passwordHash",role,status,"mustChangePassword","updatedAt") VALUES ($1,$2,$3,$4,\'ADMIN\',\'ACTIVE\',false,$5)', [userId, username, displayName, passwordHash, now]);
@@ -40,11 +41,14 @@ try {
     await client.query('INSERT INTO "ShiftInstanceAssignment" ("shiftInstanceId","userId") VALUES ($1,$2)', [instanceId, userId]);
   }
   await client.query('INSERT INTO "AuditEvent" (id,"actorUserId",action,"entityType","entityId",after) VALUES ($1,$2,\'SYSTEM_BOOTSTRAP\',\'User\',$3,$4::jsonb)', [randomUUID(), userId, userId, JSON.stringify({ username, role: "ADMIN", defaultSchedule: true })]);
-  await client.query("COMMIT");
-  console.log(`Nighty bootstrap created administrator ${username} and the default 24-hour schedule`);
-} catch (error) {
-  await client.query("ROLLBACK").catch(() => undefined);
-  throw error;
-} finally {
-  await client.end();
+    await client.query("COMMIT");
+    console.log(`Nighty bootstrap created administrator ${username} and the default 24-hour schedule`);
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
+  } finally {
+    await client.end();
+  }
 }
+
+await main();

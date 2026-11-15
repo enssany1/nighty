@@ -1,59 +1,41 @@
 {
   "schema": "nighty.task-status/v1",
-  "generatedAt": "2026-11-14T23:15:00+04:00",
-  "projectState": "APPLICATION_READY_FOR_HUMAN_ACCEPTANCE",
+  "generatedAt": "2026-11-15T09:25:00+04:00",
+  "projectState": "APPLICATION_READY_AND_ORCHESTRATION_LIVE_PILOT_PENDING",
   "activeTaskId": null,
   "runnerOwner": null,
-  "acceptedPlanTasks": 0,
+  "acceptedPlanTasks": 7,
   "plannedTasks": 10,
   "applicationAcceptedTasks": 15,
   "applicationPlannedTasks": 15,
   "tasks": [
     {
       "taskId": "ORCH-001",
-      "state": "IMPLEMENTED_NOT_ACCEPTED",
-      "accepted": false,
-      "remainingAcceptance": [
-        "complete deterministic valid/invalid fixture matrix",
-        "explicit never-overwrite proof",
-        "no-agent-invocation evidence"
-      ]
+      "state": "ACCEPTED",
+      "accepted": true,
+      "remainingAcceptance": []
     },
     {
       "taskId": "ORCH-002",
-      "state": "IMPLEMENTED_NOT_ACCEPTED",
-      "accepted": false,
-      "remainingAcceptance": [
-        "restart preservation across a reopened database",
-        "generated status projections",
-        "integrated concurrent owner and lease evidence"
-      ]
+      "state": "ACCEPTED",
+      "accepted": true,
+      "remainingAcceptance": []
     },
     {
       "taskId": "ORCH-003",
-      "state": "IMPLEMENTED_NOT_ACCEPTED",
-      "accepted": false,
-      "remainingAcceptance": [
-        "filesystem watcher wakeups",
-        "30-second full polling loop",
-        "partial-file and rename-race acceptance run",
-        "foreground conflict quarantine run"
-      ]
+      "state": "ACCEPTED",
+      "accepted": true,
+      "remainingAcceptance": []
     },
     {
       "taskId": "ORCH-004",
-      "state": "IMPLEMENTED_NOT_ACCEPTED",
-      "accepted": false,
-      "remainingAcceptance": [
-        "runner-crash cleanup test",
-        "cleanup-failure retry path",
-        "late-output case",
-        "heartbeat wired through production dispatch"
-      ]
+      "state": "ACCEPTED",
+      "accepted": true,
+      "remainingAcceptance": []
     },
     {
       "taskId": "ORCH-005",
-      "state": "IMPLEMENTED_NOT_ACCEPTED",
+      "state": "IMPLEMENTED_LIVE_PROOF_PENDING",
       "accepted": false,
       "remainingAcceptance": [
         "disposable real Codex task and review invocation",
@@ -63,9 +45,9 @@
     },
     {
       "taskId": "ORCH-006",
-      "state": "PARTIALLY_IMPLEMENTED_BLOCKED",
+      "state": "IMPLEMENTED_LIVE_PROOF_PENDING",
       "accepted": false,
-      "blockedReason": "live DeepSeek pilot not run; requires approved harness, credential, and disposable-run approval",
+      "blockedReason": "live DeepSeek pilot requires action-time approval to transmit a synthetic task to the open provider",
       "remainingAcceptance": [
         "live DeepSeek disposable pilot",
         "model identity proof",
@@ -75,42 +57,30 @@
     },
     {
       "taskId": "ORCH-007",
-      "state": "IMPLEMENTED_NOT_ACCEPTED",
-      "accepted": false,
-      "remainingAcceptance": [
-        "actual checkpoint commit creation by the authorized reviewer process",
-        "commit-failure handling",
-        "pre-existing-branch and dirty-baseline acceptance run"
-      ]
+      "state": "ACCEPTED",
+      "accepted": true,
+      "remainingAcceptance": []
     },
     {
       "taskId": "ORCH-008",
-      "state": "IMPLEMENTED_NOT_ACCEPTED",
-      "accepted": false,
-      "remainingAcceptance": [
-        "delivery-report-versus-actual-result comparison",
-        "argument-injection regression",
-        "integrated allowlist non-expansion proof"
-      ]
+      "state": "ACCEPTED",
+      "accepted": true,
+      "remainingAcceptance": []
     },
     {
       "taskId": "ORCH-009",
-      "state": "PARTIALLY_IMPLEMENTED",
-      "accepted": false,
-      "remainingAcceptance": [
-        "full fault-injection and restart matrix",
-        "correction-limit integration",
-        "end-to-end no-duplicate-checkpoint proof"
-      ]
+      "state": "ACCEPTED",
+      "accepted": true,
+      "remainingAcceptance": []
     },
     {
       "taskId": "ORCH-010",
-      "state": "NOT_STARTED_BLOCKED",
+      "state": "DETERMINISTIC_PILOT_PASSED_LIVE_PROOF_PENDING",
       "accepted": false,
-      "blockedReason": "depends on accepted ORCH tasks and explicit pilot approval",
+      "blockedReason": "live provider messages require action-time approval",
       "remainingAcceptance": [
-        "foreground pilot with human observation",
-        "artifact, state, log, and secret review",
+        "live DeepSeek and Codex foreground pilot evidence",
+        "live artifact, state, log, and secret review",
         "explicit activation decision"
       ]
     },
@@ -135,7 +105,7 @@
       "taskId": "TASK-001",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-001-CHECKPOINT.md",
@@ -146,7 +116,7 @@
       "taskId": "TASK-002",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-002-CHECKPOINT.md",
@@ -156,7 +126,7 @@
       "taskId": "TASK-003",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-003-CHECKPOINT.md",
@@ -166,7 +136,7 @@
       "taskId": "TASK-004",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-004-CHECKPOINT.md",
@@ -176,7 +146,7 @@
       "taskId": "TASK-005",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-005-CHECKPOINT.md",
@@ -186,7 +156,7 @@
       "taskId": "TASK-006",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-006-CHECKPOINT.md",
@@ -196,7 +166,7 @@
       "taskId": "TASK-007",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-007-CHECKPOINT.md",
@@ -206,7 +176,7 @@
       "taskId": "TASK-008",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-008-CHECKPOINT.md",
@@ -216,7 +186,7 @@
       "taskId": "TASK-009",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-009-CHECKPOINT.md",
@@ -226,7 +196,7 @@
       "taskId": "TASK-010",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-010-CHECKPOINT.md",
@@ -236,7 +206,7 @@
       "taskId": "TASK-011",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-011-CHECKPOINT.md",
@@ -246,7 +216,7 @@
       "taskId": "TASK-012",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-012-CHECKPOINT.md",
@@ -256,7 +226,7 @@
       "taskId": "TASK-013",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-013-CHECKPOINT.md",
@@ -266,7 +236,7 @@
       "taskId": "TASK-014",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-014-CHECKPOINT.md",
@@ -276,7 +246,7 @@
       "taskId": "TASK-015",
       "revision": 1,
       "attempt": "DIRECT-CODEX",
-      "state": "CHECKPOINT_READY",
+      "state": "CHECKPOINTED",
       "accepted": true,
       "reviewPending": false,
       "checkpoint": "docs/implementation/TASK-015-CHECKPOINT.md",

@@ -9,8 +9,8 @@ services:
     ports: !reset []
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-nighty}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD outside source control}@postgres:5432/${POSTGRES_DB:-nighty}?schema=public
-      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:?Set BOOTSTRAP_ADMIN_USERNAME for the first start}
-      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:?Set BOOTSTRAP_ADMIN_PASSWORD for the first start}
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
       BOOTSTRAP_ADMIN_DISPLAY_NAME: ${BOOTSTRAP_ADMIN_DISPLAY_NAME:-Nighty Administrator}
   web:
     restart: unless-stopped

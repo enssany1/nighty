@@ -16,7 +16,18 @@ $env:BOOTSTRAP_ADMIN_DISPLAY_NAME = "Operations Administrator"
 docker compose -f compose.yaml -f compose.production.yaml up -d --build
 ```
 
-Migrations run before the API starts. If the `User` table is empty, the bootstrap creates exactly one administrator, a Morning/Evening/Night schedule covering all 24 hours, assigns the administrator to those shifts, and starts today's first shift. It refuses invalid credentials and does nothing once any user exists. Clear `BOOTSTRAP_ADMIN_PASSWORD` from the environment after the first login.
+Migrations run before the API starts. If the `User` table is empty, the bootstrap requires valid one-time administrator values and creates exactly one administrator, a Morning/Evening/Night schedule covering all 24 hours, assigns the administrator to those shifts, and starts today's first shift. It refuses missing or invalid credentials for an empty database and does nothing once any user exists.
+
+After the first successful login, remove the one-time values and recreate the API container so Docker no longer retains them in the container configuration:
+
+```powershell
+Remove-Item Env:BOOTSTRAP_ADMIN_USERNAME -ErrorAction SilentlyContinue
+Remove-Item Env:BOOTSTRAP_ADMIN_PASSWORD -ErrorAction SilentlyContinue
+docker compose -f compose.yaml -f compose.production.yaml up -d --no-deps --force-recreate api
+docker compose -f compose.yaml -f compose.production.yaml exec api node -e 'if (process.env.BOOTSTRAP_ADMIN_USERNAME || process.env.BOOTSTRAP_ADMIN_PASSWORD) process.exit(1)'
+```
+
+The final command exits successfully only when both values are empty in the recreated container. Established installations restart without either one-time value; an empty database still fails closed.
 
 Terminate TLS at a trusted reverse proxy in front of port 8088. The bundled Nginx proxy sets CSP, frame, content-type, referrer, and permissions headers and limits uploads to 11 MiB. Keep the API and database unpublished as defined by `compose.production.yaml`.
 

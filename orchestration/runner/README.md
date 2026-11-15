@@ -1,6 +1,6 @@
 # Nighty orchestration runner foundation
 
-This directory contains the safety foundation for the local Codex/DeepSeek workflow. It is **not activated** and no ORCH plan task is independently accepted yet. See `orchestration/status/PROJECT_STATUS.md`.
+This directory contains the safety foundation for the local Codex/DeepSeek workflow. It is **not activated**. Deterministic acceptance is recorded for ORCH-001 through ORCH-004 and ORCH-007 through ORCH-009; live-provider criteria remain open for ORCH-005, ORCH-006, and ORCH-010. See `orchestration/status/PROJECT_STATUS.md`.
 
 ## Implemented and unit-tested
 
@@ -33,4 +33,4 @@ Run `npm run check` from the repository root. The Git-backed tests require the c
 
 ## Activation status
 
-No live DeepSeek or Codex review invocation has been run. The missing credential is not the only blocker: ORCH-005, ORCH-007, ORCH-008, ORCH-009, and ORCH-010 still have unexercised acceptance criteria. Only the human owner may authorize a disposable pilot or Nighty application TASK-001.
+No live DeepSeek or Codex review invocation has been run. ORCH-005, ORCH-006, and ORCH-010 retain explicit live-provider acceptance criteria. A disposable pilot requires action-time approval before transmitting its synthetic prompt; activation remains a separate explicit decision.

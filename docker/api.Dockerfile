@@ -23,6 +23,7 @@ COPY --from=build /app/apps/api/dist apps/api/dist
 COPY apps/api/prisma apps/api/prisma
 COPY apps/api/prisma7.config.ts apps/api/prisma7.config.ts
 COPY scripts/bootstrap-admin.mjs scripts/bootstrap-admin.mjs
+COPY scripts/bootstrap-policy.mjs scripts/bootstrap-policy.mjs
 COPY --chmod=755 docker/api-entrypoint.sh /usr/local/bin/nighty-api-entrypoint
 EXPOSE 3000
 ENTRYPOINT ["nighty-api-entrypoint"]

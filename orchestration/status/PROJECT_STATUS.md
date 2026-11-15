@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 14 November 2026, 23:15 +04
+**Updated:** 15 November 2026, 09:25 +04
 
-**Phase:** Production implementation ready for human acceptance (TASK-015 checkpoint)
+**Phase:** Production application delivered locally; live-provider orchestration proof pending
 
-**State:** APPLICATION_READY_FOR_HUMAN_ACCEPTANCE
+**State:** APPLICATION_READY_AND_ORCHESTRATION_LIVE_PILOT_PENDING
 
-**Progress:** TASK-901 A03 is checkpointed. TASK-001 through TASK-015 are implemented and accepted as direct Codex checkpoints under the owner's explicit unattended authorization. All 15 production tasks are checkpointed; repository policy reserves `COMPLETED` for the human owner after final diff/evidence review. The orchestration runner remains inactive and its unaccepted criteria remain explicit below.
+**Progress:** TASK-901 A03 and TASK-001 through TASK-015 are checkpointed. ORCH-001 through ORCH-004 and ORCH-007 through ORCH-009 meet their deterministic acceptance criteria. ORCH-005 and ORCH-006 implementations are complete but still require real Codex/DeepSeek evidence. ORCH-010's disposable one-correction foreground pilot passes, including checkpoint and restart, but its live-provider/human observation criteria remain open. The runner remains inactive and no push, merge, deployment, service, or scheduled task was created.
 
 ## Application implementation authorization and status
 
@@ -19,7 +19,7 @@ TASK-001 established and verified:
 - Strict TypeScript, Helmet, bounded request parsing, request IDs, and sans-serif-only design tokens.
 - Valid Docker Compose topology with persistent PostgreSQL and attachment volumes.
 - Locally built Nighty API and web images.
-- Full gate: 116 orchestration tests plus API/web smoke tests pass; all workspaces build; production dependency audit reports zero vulnerabilities.
+- Initial TASK-001 gate: 116 orchestration tests plus API/web smoke tests passed; all workspaces built; the production dependency audit reported zero vulnerabilities.
 
 Checkpoint evidence: docs/implementation/TASK-001-CHECKPOINT.md.
 
@@ -97,14 +97,14 @@ TASK-015 added real-browser accessibility/responsive/persistence coverage, harde
 
 Checkpoint evidence: docs/implementation/TASK-015-CHECKPOINT.md.
 
-## Correction of the previous status
+## Status lineage
 
-The previous revision of this file labeled ORCH-001 through ORCH-009 as "Completed and checkpointed" and described the missing DeepSeek credential as the only blocker. That was not supported by evidence. Those items were isolated, unit-tested primitives; no integrated foreground runner, independent review, or checkpoint had been exercised. `TASK_STATUS.json` has been corrected to match.
+An earlier revision overclaimed ORCH acceptance before the integrated foreground runner and recovery evidence existed. That correction was valid at the time. Subsequent commits now provide deterministic acceptance evidence for ORCH-001 through ORCH-004 and ORCH-007 through ORCH-009, as recorded below and in `TASK_STATUS.json`.
 
-Two distinct things remain true:
+Two distinct limitations remain:
 
-1. The missing credential is **not** the only blocker. ORCH-005, ORCH-007, ORCH-008, ORCH-009, and ORCH-010 still have unexercised acceptance criteria (listed below), and the runner has never been activated.
-2. Isolated primitives now have substantially broader regression coverage after TASK-901, but coverage is not the same as plan-task acceptance.
+1. ORCH-005 and ORCH-006 still require approved live synthetic provider runs; ORCH-010 still requires that live evidence and the explicit activation decision.
+2. The foreground runner is tested but remains deliberately inactive. Deterministic provider doubles do not establish live Codex or DeepSeek behavior.
 
 ## TASK-901 status
 
@@ -134,39 +134,42 @@ Two distinct things remain true:
 - Verification-registry sealing and fail-closed finalization.
 - Dedicated runner-owned DeepSeek `CODEX_HOME` preparation that requires no credential and rejects shared/ambient user configuration.
 
-## ORCH plan tasks not accepted
+## ORCH plan acceptance status
 
-| Task | Current state | Remaining acceptance criteria |
+| Task | Current state | Evidence / remaining acceptance |
 |---|---|---|
-| ORCH-001 | Implemented primitives | Complete deterministic valid/invalid fixture matrix; explicit proof that existing files are never overwritten; no-agent-invocation evidence. |
-| ORCH-002 | Implemented primitives | Restart-preservation test across a reopened database; generated status projections; concurrent owner/lease evidence integrated with the runner. |
-| ORCH-003 | Implemented primitives | Filesystem watcher wakeups and 30-second full polling loop; partial-file and rename-race acceptance run; conflict quarantine exercised through the foreground runner. |
-| ORCH-004 | Implemented primitives | Runner-crash cleanup test; explicit cleanup-failure retry path; late-output case; heartbeat wired from the supervisor into production dispatch. |
-| ORCH-005 | Implemented primitives | Disposable real Codex task and review invocation; auth-failure behavior; review evidence capture; controller cannot approve without evidence fields in a real run. |
-| ORCH-006 | Partially implemented, blocked | Live DeepSeek disposable pilot has not run; model-identity proof; denial of out-of-root edits and unregistered commands; secret-absence scan after a live run. |
-| ORCH-007 | Implemented primitives | Actual checkpoint commit creation (runner intentionally does not commit); commit-failure handling; pre-existing-branch and dirty-baseline acceptance run. |
-| ORCH-008 | Implemented primitives | Delivery-report-versus-actual-result comparison; argument-injection regression; report cannot expand the command allowlist in an integrated run. |
-| ORCH-009 | Partially implemented | Full fault-injection/restart matrix from `AUTOMATED_WORKFLOW.md`; correction-limit integration; no-duplicate-checkpoint proof end to end. |
-| ORCH-010 | Not started | Foreground pilot, human observation, artifact/state/log/secret review, and explicit activation decision. |
+| ORCH-001 | Accepted | Deterministic fixture matrix, idempotency, never-overwrite, and no-provider proof. |
+| ORCH-002 | Accepted | Reopened SQLite preservation, regenerated projections, and owner/lease concurrency. |
+| ORCH-003 | Accepted | Exclusive foreground lock, watcher wakeups, 30-second polling default, atomic rename, and conflict quarantine. |
+| ORCH-004 | Accepted | Heartbeats, exact owned-process restart recovery, cleanup retry, and late-output quarantine. |
+| ORCH-005 | Live proof pending | Structured Codex adapter, canonical artifact bridge, mandatory review evidence, and authenticated CLI are ready; real synthetic task/review and isolated auth-failure evidence remain. |
+| ORCH-006 | Live proof pending | Isolated DeepSeek profile/credential boundary is ready; real synthetic task, model identity, boundary denial, and post-run secret scan remain. |
+| ORCH-007 | Accepted | Clean-baseline gate, exact approved inventory, Conventional Commit, branch/source drift, commit failure, and duplicate prevention. |
+| ORCH-008 | Accepted | Sealed command registry and exact PASSED/FAILED/UNVERIFIED claim-versus-reality validation, including injection tests. |
+| ORCH-009 | Accepted | Complete documented recovery matrix in `orchestration/acceptance/RECOVERY_MATRIX.md`. |
+| ORCH-010 | Deterministic pilot passed; live proof pending | A01 changes required, A02 approved, one checkpoint, SQLite reopen, foreground restart, and no duplicate commit pass. Live providers and explicit activation decision remain. |
 
 ## Verification evidence
 
 - `npm run typecheck`: exit 0 across the runner and all production workspaces.
-- `npm run check`: exit 0 (116 orchestration tests plus the API and web smoke suites).
+- `npm run check`: exit 0 (141 orchestration, 5 bootstrap-policy, 26 API unit, 10 web, and generated-client tests).
 - `npm run build --workspaces --if-present`: exit 0.
 - `docker compose config`: exit 0.
-- `docker compose build api web`: exit 0.
+- `docker build -f docker/api.Dockerfile` and `docker build -f docker/web.Dockerfile`: exit 0.
 - `npm audit --omit=dev --audit-level=high`: exit 0, zero vulnerabilities.
 - `git diff --check`: exit 0.
 - `npm run test:integration -w @nighty/api`: exit 0, 27 tests.
-- `npm run test:e2e`: exit 0, 10 real-browser tests.
+- `npm run test:e2e`: exit 0, 10 real-browser tests; post-image-recreate login handoff also passes.
+- Production API/web image rebuilds: exit 0; recreated containers use the exact new image IDs and are healthy.
+- Established-database restart with cleared bootstrap credentials and an API-container recreation: passes; API runs as UID 1000 and web as UID 101.
+- Disposable empty-database bootstrap drill: missing credentials fail with zero users; valid values create `1|3|1|1` user/shift/day/audit counts; drill database removed.
 - Empty-volume bootstrap, restart persistence, attachment-inclusive backup, and isolated restore drills: exit 0.
 - Git was supplied through the exact provided executable directory, not installed.
 
 ## Known limitations
 
-- No live provider invocation occurred through the runner. TASK-901 A03 used the separately authorized DeepSeek Harness interaction; TASK-001 was implemented directly by Codex and is not represented as a DeepSeek delivery.
-- The foreground runner loop (watcher plus polling) is not activated; the reconciler is callable and tested.
+- No live provider invocation occurred through the runner. The deterministic foreground pilot uses controlled producers and is not represented as DeepSeek/Codex provider evidence.
+- The foreground runner is acceptance-tested but remains deliberately inactive outside disposable tests.
 - Localized Windows `taskkill` output and a forced cleanup-failure retry remain unexercised; cleanup evidence records `remainingPids`, `deadlineExceeded`, and `failures`.
 - Windows descendant liveness is tracked by a bounded polling window while the root is alive; a descendant that both survives and starts after the final poll could escape discovery. The recorded run/lease PID and cleanup evidence remain explicit.
 - Task-content authority is a SHA-256 of the exact task file; changing task contents without a revision bump is rejected at review ingestion and checkpoint.
@@ -174,4 +177,4 @@ Two distinct things remain true:
 
 ## Next required action
 
-Human owner reviews the final diff and validation evidence, then makes the repository-owned completion/readiness declaration. Continue to keep the orchestration runner inactive unless its remaining acceptance criteria are separately authorized and completed.
+Obtain action-time approval to send a non-sensitive synthetic task to the already-open DeepSeek Harness and authenticated Codex service. Run the two live disposable proofs, inspect artifacts/logs/state for secret absence, record the activation decision, then perform the final human-owned readiness review. Keep the orchestration runner inactive until that evidence is complete.
