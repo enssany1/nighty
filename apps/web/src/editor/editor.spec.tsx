@@ -6,6 +6,13 @@ import { EntryComposer } from "./EntryComposer";
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear(); });
 
 describe("approved editor actions", () => {
+  it("does not repeat the selected action in the composer footer", () => {
+    localStorage.setItem("nighty:draft:2026-11-13:shift", JSON.stringify({ type: "UPDATE", todos: [""] }));
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("[]", { status: 200, headers: { "content-type": "application/json" } }));
+    const { container } = render(<EntryComposer shiftId="shift" operationalDate="2026-11-13" onSubmitted={() => undefined} onHandover={() => undefined} />);
+    expect(container.querySelector(".composer-tools .action-badge")).not.toBeInTheDocument();
+  });
+
   it("renders a standalone interactive To-do list with no Decision, Issue, or Checklist action", () => {
     render(<EntryView writable entry={{ id: "e1", type: "TODO", editorDocument: {}, plainText: "First\nSecond", todoItems: [{ id: "t1", text: "First", position: 1 }, { id: "t2", text: "Second", position: 2 }], authorId: "u1", author: { id: "u1", displayName: "Aisha" }, createdAt: "2026-11-13T15:00:00Z" }} onChange={() => undefined} />);
     expect(screen.getByText("To-do list")).toBeInTheDocument(); expect(screen.getAllByRole("checkbox")).toHaveLength(2); expect(screen.queryByText("Decision")).not.toBeInTheDocument(); expect(screen.queryByText("Issue")).not.toBeInTheDocument(); expect(screen.queryByText("Checklist")).not.toBeInTheDocument();
