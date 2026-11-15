@@ -1,10 +1,10 @@
 {
   "schema": "nighty.task-status/v1",
-  "generatedAt": "2026-11-15T11:28:00+04:00",
-  "projectState": "APPLICATION_READY_AND_ORCHESTRATION_SIGNOFF_PENDING",
+  "generatedAt": "2026-11-15T11:36:00+04:00",
+  "projectState": "PROJECT_DELIVERED_LOCALLY",
   "activeTaskId": null,
   "runnerOwner": null,
-  "acceptedPlanTasks": 9,
+  "acceptedPlanTasks": 10,
   "plannedTasks": 10,
   "applicationAcceptedTasks": 15,
   "applicationPlannedTasks": 15,
@@ -67,13 +67,11 @@
     },
     {
       "taskId": "ORCH-010",
-      "state": "TECHNICAL_EVIDENCE_COMPLETE_HUMAN_SIGNOFF_PENDING",
-      "accepted": false,
+      "state": "ACCEPTED",
+      "accepted": true,
       "evidence": "orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md",
-      "remainingAcceptance": [
-        "human review and sign-off of live provider evidence",
-        "explicit activation decision"
-      ]
+      "ownerApproval": "orchestration/status/ACTIVATION_DECISION.md",
+      "remainingAcceptance": []
     },
     {
       "taskId": "TASK-901",

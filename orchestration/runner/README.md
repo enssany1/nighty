@@ -1,6 +1,6 @@
 # Nighty orchestration runner foundation
 
-This directory contains the safety foundation for the local Codex/DeepSeek workflow. It is **not activated**. ORCH-001 through ORCH-009 meet their technical acceptance criteria. ORCH-010's deterministic one-correction foreground pilot and real-provider proofs are complete, while human evidence sign-off and the separate activation decision remain open. See `orchestration/status/PROJECT_STATUS.md` and `orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md`.
+This directory contains the safety foundation for the local Codex/DeepSeek workflow. It is **not activated**. ORCH-001 through ORCH-010 are accepted, including human sign-off of the live-provider evidence. The optional foreground runner remains inactive by operational decision. See `orchestration/status/PROJECT_STATUS.md` and `orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md`.
 
 ## Implemented and unit-tested
 
@@ -33,4 +33,4 @@ Run `npm run check` from the repository root. The Git-backed tests require the c
 
 ## Activation status
 
-Live synthetic DeepSeek and Codex invocations have been observed in disposable repositories outside Nighty. The DeepSeek desktop Harness is not an authorized runner because its fresh session launched full-access and ignored a project-local shell override. Only the isolated runner-owned profile may be used for the developer role. Human ORCH-010 sign-off and activation remain separate explicit decisions; the foreground runner stays inactive.
+Live synthetic DeepSeek and Codex invocations have been observed in disposable repositories outside Nighty. The DeepSeek desktop Harness is not an authorized runner because its fresh session launched full-access and ignored a project-local shell override. Only the isolated runner-owned profile may be used for the developer role. The human owner approved the evidence; starting the foreground runner remains a separate future operation, and it stays inactive.

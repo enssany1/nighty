@@ -5,7 +5,7 @@
 
 ## Decision
 
-ORCH-005 and ORCH-006 meet their live technical acceptance criteria. ORCH-010 has complete technical evidence when the already-passing deterministic one-correction foreground pilot is combined with these live provider proofs. The orchestration runner remains inactive until the human owner reviews this evidence and separately authorizes activation.
+ORCH-005 and ORCH-006 meet their live technical acceptance criteria. ORCH-010 has complete technical evidence when the already-passing deterministic one-correction foreground pilot is combined with these live provider proofs. The human owner approved this evidence on 15 November 2026 after the final local handoff. The optional orchestration runner remains inactive; evidence approval did not create a background service or request a runner start.
 
 The standalone DeepSeek Harness desktop GUI is explicitly **not** an approved production runner. Its workspace-write session correctly denied an out-of-root write, but it allowed the unregistered read-only `whoami` command. A fresh GUI session ignored a project-local Codex feature override and declared `danger-full-access` with approvals disabled. Nighty therefore uses only its isolated runner-owned Codex profile for the DeepSeek role; that profile disables the shell tool completely, and the runner's sealed verification registry owns all command execution.
 
@@ -49,11 +49,11 @@ The GUI replay proved that a workspace sandbox alone does not implement a comman
 
 The deterministic foreground pilot remains the authoritative end-to-end state-machine proof: A01 receives `CHANGES_REQUIRED`, A02 receives `APPROVED`, exactly one Conventional Commit is created, SQLite is reopened, the foreground runner restarts, and no duplicate checkpoint occurs. The live proofs above exercise the real named providers and their failure boundaries without sending Nighty source.
 
-This is a deliberate split of responsibilities, not a claim that the unsafe desktop GUI ran Nighty's controller. Replaying the whole state machine through that GUI would weaken the approved boundary. The human owner must still sign off this evidence and make the separate activation decision required by ORCH-010.
+This is a deliberate split of responsibilities, not a claim that the unsafe desktop GUI ran Nighty's controller. Replaying the whole state machine through that GUI would weaken the approved boundary. The human owner signed off this evidence on 15 November 2026. The separate operational decision is to leave the optional foreground runner inactive unless it is explicitly started later.
 
 ## Preserved limitations
 
 - No live DeepSeek API-key invocation has run through Nighty's production adapter; the provider proof used the already-open authenticated desktop Harness against synthetic files.
 - The desktop Harness itself is excluded from activation because its fresh session launched full-access and did not honor the project-local shell feature setting.
 - The orchestration runner remains foreground-only and inactive; no service, scheduled task, push, merge, or production deployment was created.
-- Human readiness and activation declarations remain human-owned and are not checked on the owner's behalf.
+- Evidence readiness is human-approved. A future runner start, push, merge, or production deployment remains a separate explicit operation.

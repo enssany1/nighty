@@ -1,12 +1,12 @@
 # Nighty Project Status
 
-**Updated:** 15 November 2026, 11:28 +04
+**Updated:** 15 November 2026, 11:36 +04
 
-**Phase:** Production application delivered locally; orchestration technical evidence complete and human sign-off pending
+**Phase:** Production application and orchestration acceptance delivered locally
 
-**State:** APPLICATION_READY_AND_ORCHESTRATION_SIGNOFF_PENDING
+**State:** PROJECT_DELIVERED_LOCALLY
 
-**Progress:** TASK-901 A03 and TASK-001 through TASK-015 are checkpointed. ORCH-001 through ORCH-009 meet their technical acceptance criteria. Real synthetic Codex and DeepSeek proofs are recorded in `orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md`; the unsafe standalone DeepSeek desktop GUI is explicitly excluded from activation. ORCH-010's disposable one-correction foreground pilot passes, including checkpoint and restart, and its live-provider technical evidence is complete. Human evidence sign-off and the separate activation decision remain open. The runner remains inactive and no push, merge, deployment, service, or scheduled task was created.
+**Progress:** TASK-901 A03 and TASK-001 through TASK-015 are checkpointed. ORCH-001 through ORCH-010 are accepted. Real synthetic Codex and DeepSeek proofs are recorded in `orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md`; the human owner approved that evidence on 15 November 2026. The unsafe standalone DeepSeek desktop GUI is excluded from activation. The optional foreground runner remains inactive by operational decision, and no push, merge, deployment, service, or scheduled task was created.
 
 ## Application implementation authorization and status
 
@@ -101,10 +101,10 @@ Checkpoint evidence: docs/implementation/TASK-015-CHECKPOINT.md.
 
 An earlier revision overclaimed ORCH acceptance before the integrated foreground runner and recovery evidence existed. That correction was valid at the time. Subsequent commits now provide deterministic acceptance evidence for ORCH-001 through ORCH-004 and ORCH-007 through ORCH-009, as recorded below and in `TASK_STATUS.json`.
 
-Two distinct limitations remain:
+Two operational limitations remain:
 
-1. ORCH-010 still requires the human owner to review/sign off the live evidence and separately decide whether to activate the foreground runner.
-2. The foreground runner is tested but remains deliberately inactive. The standalone DeepSeek desktop GUI is not an authorized substitute for the isolated production profile.
+1. The foreground runner is tested but remains deliberately inactive; a future start is a separate explicit operation.
+2. The standalone DeepSeek desktop GUI is not an authorized substitute for the isolated production profile.
 
 ## TASK-901 status
 
@@ -147,7 +147,7 @@ Two distinct limitations remain:
 | ORCH-007 | Accepted | Clean-baseline gate, exact approved inventory, Conventional Commit, branch/source drift, commit failure, and duplicate prevention. |
 | ORCH-008 | Accepted | Sealed command registry and exact PASSED/FAILED/UNVERIFIED claim-versus-reality validation, including injection tests. |
 | ORCH-009 | Accepted | Complete documented recovery matrix in `orchestration/acceptance/RECOVERY_MATRIX.md`. |
-| ORCH-010 | Technical evidence complete; human sign-off pending | A01 changes required, A02 approved, one checkpoint, SQLite reopen, foreground restart, no duplicate commit, and real provider proofs pass. Human evidence sign-off and explicit activation remain. |
+| ORCH-010 | Accepted | A01 changes required, A02 approved, one checkpoint, SQLite reopen, foreground restart, no duplicate commit, real provider proofs, and human evidence sign-off pass. The optional runner remains inactive. |
 
 ## Verification evidence
 
@@ -176,6 +176,6 @@ Two distinct limitations remain:
 - Task-content authority is a SHA-256 of the exact task file; changing task contents without a revision bump is rejected at review ingestion and checkpoint.
 - No credential was read, displayed, persisted, or sent by the acceptance workflow; redaction remains proven with synthetic values only.
 
-## Next required action
+## Current operating decision
 
-The human owner must review `orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md`, sign off ORCH-010, and separately decide whether to activate the foreground runner. Keep the runner inactive until that decision; activation is not required to use the already-running Nighty application locally.
+No project-delivery action remains. Nighty is available locally at `http://localhost:8088`. Starting the optional foreground runner, pushing, merging, or deploying remain separate future operations and are not required for local use.
