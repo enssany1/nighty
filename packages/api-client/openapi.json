@@ -200,6 +200,23 @@
         "tags": [
           "users"
         ]
+      },
+      "delete": {
+        "operationId": "UsersController_delete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "users"
+        ]
       }
     },
     "/api/users/{id}/reset-password": {
@@ -331,6 +348,23 @@
     "/api/shifts/{id}": {
       "patch": {
         "operationId": "ShiftsController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "nighty_session": []
+          }
+        ],
+        "tags": [
+          "shifts"
+        ]
+      },
+      "delete": {
+        "operationId": "ShiftsController_delete",
         "parameters": [],
         "responses": {
           "200": {

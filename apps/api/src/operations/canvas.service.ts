@@ -16,8 +16,8 @@ const canvasInclude = {
         },
       },
       incomingTransfers: {
-        where: { status: "OPEN" as const },
         include: {
+          completedBy: { select: { id: true, displayName: true } },
           sourceEntry: {
             include: {
               todoItems: { orderBy: { position: "asc" as const } },
@@ -65,6 +65,8 @@ export class CanvasService {
         incomingFollows: shift.incomingTransfers.map((transfer) => ({
           transferId: transfer.id,
           status: transfer.status,
+          completedAt: transfer.completedAt,
+          completedBy: transfer.completedBy,
           entry: {
             ...transfer.sourceEntry,
             attachments: transfer.sourceEntry.attachments.map((attachment) => ({

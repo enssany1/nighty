@@ -67,23 +67,31 @@ export class HandoverService {
       where: { id: next.id },
       data: { status: "ACTIVE", openedAt: now, closedAt: null, version: { increment: 1 } },
     });
-    const openFollows = await tx.entry.findMany({
+    const ownOpenFollows = await tx.entry.findMany({
       where: { shiftInstanceId: current.id, type: "FOLLOW", followStatus: "OPEN" },
       select: { id: true },
     });
-    if (openFollows.length) {
+    const incomingOpenFollows = await tx.followTransfer.findMany({
+      where: { toShiftInstanceId: current.id, status: "OPEN", sourceEntry: { followStatus: "OPEN" } },
+      select: { sourceEntryId: true },
+    });
+    const openFollowIds = [...new Set([
+      ...ownOpenFollows.map((entry) => entry.id),
+      ...incomingOpenFollows.map((transfer) => transfer.sourceEntryId),
+    ])];
+    if (openFollowIds.length) {
       await tx.followTransfer.createMany({
-        data: openFollows.map((entry) => ({ sourceEntryId: entry.id, fromShiftInstanceId: current.id, toShiftInstanceId: next.id })),
+        data: openFollowIds.map((sourceEntryId) => ({ sourceEntryId, fromShiftInstanceId: current.id, toShiftInstanceId: next.id })),
         skipDuplicates: true,
       });
     }
     await tx.auditEvent.create({
       data: {
         actorUserId: userId, action: "SHIFT_HANDOVER", entityType: "ShiftInstance", entityId: current.id,
-        before: { status: "ACTIVE" }, after: { status: "CLOSED", openedShiftId: next.id, transferredFollowCount: openFollows.length },
+        before: { status: "ACTIVE" }, after: { status: "CLOSED", openedShiftId: next.id, transferredFollowCount: openFollowIds.length },
       },
     });
-    return { closedShiftId: current.id, openedShiftId: next.id, transferredFollowCount: openFollows.length, alreadyCompleted: false };
+    return { closedShiftId: current.id, openedShiftId: next.id, transferredFollowCount: openFollowIds.length, alreadyCompleted: false };
   }
 
   private async resolveSuccessor(tx: Prisma.TransactionClient, current: { id: string; operationalDayId: string; positionSnapshot: number; operationalDay: { operationalDate: Date } }) {

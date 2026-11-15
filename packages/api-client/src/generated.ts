@@ -406,6 +406,11 @@ export interface paths {
       request: unknown;
       response: unknown;
     };
+    delete: {
+      operationId: "ShiftsController_delete";
+      request: unknown;
+      response: unknown;
+    };
   };
   "/api/shifts/reorder": {
     post: {
@@ -486,6 +491,11 @@ export interface paths {
   "/api/users/{id}": {
     patch: {
       operationId: "UsersController_update";
+      request: unknown;
+      response: unknown;
+    };
+    delete: {
+      operationId: "UsersController_delete";
       request: unknown;
       response: unknown;
     };

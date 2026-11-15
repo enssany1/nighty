@@ -146,4 +146,37 @@ export class UsersService {
     });
     return { temporaryPassword: password };
   }
+
+  async deleteUser(actorUserId: string, targetUserId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const current = await tx.user.findUnique({
+        where: { id: targetUserId },
+        include: {
+          shiftAssignments: true,
+          _count: { select: { instanceAssignments: true, entries: true, revisions: true, tagPosts: true, attachments: true, completedFollows: true, auditEvents: true, settingsUpdated: true } },
+        },
+      });
+      if (!current) throw new NotFoundException("User not found");
+      if (current.role === "ADMIN" && current.status === "ACTIVE") {
+        const activeAdmins = await tx.$queryRaw<Array<{ id: string }>>`
+          SELECT id FROM "User" WHERE role = 'ADMIN' AND status = 'ACTIVE' FOR UPDATE
+        `;
+        if (activeAdmins.length <= 1) throw new BadRequestException("At least one active administrator is required");
+      }
+      if (actorUserId === targetUserId) throw new ForbiddenException("You cannot delete your own administrator account");
+      const before = publicUser(current);
+      const referenceCount = Object.values(current._count).reduce((sum, count) => sum + count, 0);
+      if (referenceCount === 0) {
+        await tx.user.delete({ where: { id: targetUserId } });
+        await tx.auditEvent.create({ data: { actorUserId, action: "USER_DELETED", entityType: "User", entityId: targetUserId, before } });
+        return { outcome: "DELETED" as const, id: targetUserId };
+      }
+      await tx.shiftAssignment.deleteMany({ where: { userId: targetUserId } });
+      await tx.session.updateMany({ where: { userId: targetUserId, revokedAt: null }, data: { revokedAt: new Date() } });
+      const updated = await tx.user.update({ where: { id: targetUserId }, data: { status: "DISABLED" }, include: userInclude });
+      const after = publicUser(updated);
+      await tx.auditEvent.create({ data: { actorUserId, action: "USER_DEACTIVATED", entityType: "User", entityId: targetUserId, before, after } });
+      return { outcome: "DEACTIVATED" as const, user: after };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }
 }

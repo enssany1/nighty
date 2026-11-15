@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Patch, Post, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, Req } from "@nestjs/common";
 import { ApiCookieAuth, ApiTags } from "@nestjs/swagger";
 import type { Request } from "express";
 import { CreateUserRequestDto, UpdateProfileRequestDto, UpdateUserRequestDto } from "../common/dto/contracts";
@@ -29,6 +29,11 @@ export class UsersController {
   @Post(":id/reset-password")
   resetPassword(@Req() request: Request, @Param("id") id: string) {
     return this.users.resetPassword(request.auth!.user.id, id);
+  }
+
+  @Delete(":id")
+  delete(@Req() request: Request, @Param("id") id: string) {
+    return this.users.deleteUser(request.auth!.user.id, id);
   }
 }
 

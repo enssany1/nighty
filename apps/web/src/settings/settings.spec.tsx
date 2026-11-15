@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SettingsWorkspace } from "./SettingsWorkspace";
 
@@ -11,5 +11,14 @@ describe("selected administration experience", () => {
   });
   it("shows the fixed 30-minute session policy and one-year retention default", async () => {
     vi.spyOn(globalThis,"fetch").mockImplementation((request)=>{const url=String(request);if(url.includes("/settings"))return reply({general:{applicationName:"Nighty",subtitle:"Shift Operations Handover",timezone:"Asia/Muscat",dateFormat:"DD MMM YYYY",timeFormat:"24-hour",defaultLanding:"current-operational-day"},security:{sessionIdleMinutes:30,passwordMinLength:12},retention:{retentionDays:365,attachmentRetention:"follows-parent"}});if(url.includes("/audit"))return reply({items:[]});return reply([]);}); render(<SettingsWorkspace onBack={()=>undefined}/>); fireEvent.click(screen.getByRole("button",{name:"Security"})); expect(await screen.findByDisplayValue("30 minutes")).toBeInTheDocument(); fireEvent.click(screen.getByRole("button",{name:"Retention"})); expect(await screen.findByDisplayValue("365")).toBeInTheDocument(); expect(screen.getByRole("button",{name:"Preview cleanup"})).toBeInTheDocument(); expect(screen.getByRole("button",{name:"Run permanent cleanup"})).toBeInTheDocument();
+  });
+  it("offers confirmed delete actions for an existing user and shift", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((request, init) => { const url=String(request); if(init?.method==="DELETE") return reply({outcome:"DELETED",id:url.split("/").pop()}); if(url.includes("/settings"))return reply({general:{applicationName:"Nighty",subtitle:"Shift Operations Handover",timezone:"Asia/Muscat",dateFormat:"DD MMM YYYY",timeFormat:"24-hour",defaultLanding:"current-operational-day"},security:{sessionIdleMinutes:30,passwordMinLength:12},retention:{retentionDays:365,attachmentRetention:"follows-parent"}}); if(url.includes("/users"))return reply([{id:"u1",username:"operator",displayName:"Operator",role:"OPERATOR",status:"ACTIVE",shiftIds:["s1"],mustChangePassword:false}]); if(url.includes("/shifts"))return reply([{id:"s1",name:"Morning",startMinute:0,endMinute:0,position:1,active:true}]); if(url.includes("/tags"))return reply([]); if(url.includes("/audit"))return reply({items:[]}); return reply({}); });
+    vi.spyOn(window,"confirm").mockReturnValue(true);
+    render(<SettingsWorkspace onBack={()=>undefined}/>);
+    fireEvent.click(screen.getByRole("button",{name:"Users"})); fireEvent.click(await screen.findByRole("row",{name:/Operator@operator/})); fireEvent.click(screen.getByRole("button",{name:"Delete user"}));
+    await waitFor(()=>expect(fetchMock).toHaveBeenCalledWith("/api/users/u1",expect.objectContaining({method:"DELETE"})));
+    fireEvent.click(screen.getByRole("button",{name:"Shifts"})); fireEvent.click(await screen.findByRole("row",{name:/Morning/})); fireEvent.click(screen.getByRole("button",{name:"Delete shift"}));
+    await waitFor(()=>expect(fetchMock).toHaveBeenCalledWith("/api/shifts/s1",expect.objectContaining({method:"DELETE"})));
   });
 });

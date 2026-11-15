@@ -69,4 +69,27 @@ export class ShiftsService {
       return tx.shiftDefinition.findMany({ orderBy: { position: "asc" } });
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
+
+  async delete(actorUserId: string, id: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const shifts = await tx.shiftDefinition.findMany({ orderBy: { position: "asc" } });
+      const current = shifts.find((shift) => shift.id === id);
+      if (!current) throw new NotFoundException("Shift not found");
+      const remaining = shifts.filter((shift) => shift.id !== id);
+      if (current.active) validateSchedule(remaining);
+      const instanceCount = await tx.shiftDefinition.count({ where: { id, instances: { some: {} } } });
+      if (instanceCount === 0) {
+        await tx.shiftDefinition.delete({ where: { id } });
+        for (const [index, shift] of remaining.entries()) {
+          if (shift.position !== index + 1) await tx.shiftDefinition.update({ where: { id: shift.id }, data: { position: index + 1 } });
+        }
+        await tx.auditEvent.create({ data: { actorUserId, action: "SHIFT_DELETED", entityType: "ShiftDefinition", entityId: id, before: current } });
+        return { outcome: "DELETED" as const, id };
+      }
+      await tx.shiftAssignment.deleteMany({ where: { shiftDefinitionId: id } });
+      const updated = await tx.shiftDefinition.update({ where: { id }, data: { active: false } });
+      await tx.auditEvent.create({ data: { actorUserId, action: "SHIFT_DEACTIVATED", entityType: "ShiftDefinition", entityId: id, before: current, after: updated } });
+      return { outcome: "DEACTIVATED" as const, shift: updated };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }
 }

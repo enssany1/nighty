@@ -11,6 +11,7 @@ describe("users administration (e2e)", () => {
   let cookie: string;
   let csrf: string;
   let createdUserId: string | undefined;
+  let referencedUserId: string | undefined;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -27,6 +28,10 @@ describe("users administration (e2e)", () => {
 
   afterAll(async () => {
     if (createdUserId) await prisma.user.delete({ where: { id: createdUserId } }).catch(() => undefined);
+    if (referencedUserId) {
+      await prisma.auditEvent.deleteMany({ where: { OR: [{ actorUserId: referencedUserId }, { entityId: referencedUserId }] } });
+      await prisma.user.delete({ where: { id: referencedUserId } }).catch(() => undefined);
+    }
     if (app) await app.close();
   });
 
@@ -54,5 +59,42 @@ describe("users administration (e2e)", () => {
     const stored = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
     expect(stored.mustChangePassword).toBe(true);
     expect(stored.passwordHash).not.toBe(response.body.temporaryPassword);
+  });
+
+  it("rejects deleting the last active administrator through DELETE", async () => {
+    const aisha = await prisma.user.findUniqueOrThrow({ where: { username: "aisha" } });
+    expect(await prisma.user.count({ where: { role: "ADMIN", status: "ACTIVE" } })).toBe(1);
+    await request(app.getHttpServer()).delete(`/api/users/${aisha.id}`)
+      .set("Cookie", cookie).set("x-csrf-token", csrf).expect(400);
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: aisha.id } })).status).toBe("ACTIVE");
+  });
+
+  it("permanently deletes an unused user and records the lifecycle audit", async () => {
+    const userId = createdUserId!;
+    const response = await request(app.getHttpServer()).delete(`/api/users/${userId}`)
+      .set("Cookie", cookie).set("x-csrf-token", csrf).expect(200);
+    expect(response.body).toEqual({ outcome: "DELETED", id: userId });
+    expect(await prisma.user.findUnique({ where: { id: userId } })).toBeNull();
+    expect(await prisma.auditEvent.findFirst({ where: { entityId: userId, action: "USER_DELETED" } })).not.toBeNull();
+    createdUserId = undefined;
+  });
+
+  it("deactivates a user referenced by audit history without erasing actor identity", async () => {
+    const shift = await prisma.shiftDefinition.findFirstOrThrow({ orderBy: { position: "asc" } });
+    const created = await request(app.getHttpServer()).post("/api/users")
+      .set("Cookie", cookie).set("x-csrf-token", csrf)
+      .send({ username: "audit.operator", displayName: "Audit Operator", role: "OPERATOR", shiftIds: [shift.id] })
+      .expect(201);
+    referencedUserId = created.body.user.id;
+    const userId = referencedUserId!;
+    const sourceAudit = await prisma.auditEvent.create({
+      data: { actorUserId: userId, action: "TEST_HISTORICAL_ACTION", entityType: "TestFixture", entityId: userId },
+    });
+    const response = await request(app.getHttpServer()).delete(`/api/users/${userId}`)
+      .set("Cookie", cookie).set("x-csrf-token", csrf).expect(200);
+    expect(response.body).toMatchObject({ outcome: "DEACTIVATED", user: { id: userId, status: "DISABLED", shiftIds: [] } });
+    expect(await prisma.shiftAssignment.count({ where: { userId } })).toBe(0);
+    expect((await prisma.auditEvent.findUniqueOrThrow({ where: { id: sourceAudit.id } })).actorUserId).toBe(userId);
+    expect(await prisma.auditEvent.findFirst({ where: { entityId: userId, action: "USER_DEACTIVATED" } })).not.toBeNull();
   });
 });

@@ -9,6 +9,7 @@ describe("indexed entry search (e2e)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let cookie: string;
+  let ownedEntryId: string | undefined;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -21,20 +22,26 @@ describe("indexed entry search (e2e)", () => {
     cookie = login.headers["set-cookie"]?.[0] as string;
   });
 
-  afterAll(async () => { if (app) await app.close(); });
+  afterAll(async () => { if (ownedEntryId) await prisma.entry.delete({ where: { id: ownedEntryId } }).catch(() => undefined); if (app) await app.close(); });
 
   it("combines every approved filter and returns a stable canvas destination", async () => {
-    const follow = await prisma.entry.findFirstOrThrow({
-      where: { type: "FOLLOW" }, include: { tags: true, shiftInstance: true },
-    });
+    const shift = await prisma.shiftInstance.findFirstOrThrow({ where: { operationalDay: { operationalDate: new Date("2026-11-13T00:00:00.000Z") } }, include: { operationalDay: true } });
+    const tag = await prisma.tag.findFirstOrThrow();
+    const author = await prisma.user.findUniqueOrThrow({ where: { username: "aisha" } });
+    const follow = await prisma.entry.create({ data: {
+      shiftInstanceId: shift.id, authorId: author.id, type: "FOLLOW", editorDocument: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "monitoring integration sentinel" }] }] },
+      plainText: "monitoring integration sentinel", followStatus: "OPEN", tags: { create: { tagId: tag.id } },
+    }, include: { tags: true, shiftInstance: true } });
+    ownedEntryId = follow.id;
+    const operationalDate = shift.operationalDay.operationalDate.toISOString().slice(0, 10);
     const query = new URLSearchParams({
-      q: "monitoring", from: "2026-11-13", to: "2026-11-13", operator: follow.authorId,
+      q: "integration sentinel", from: operationalDate, to: operationalDate, operator: follow.authorId,
       shift: follow.shiftInstance.definitionId, tag: follow.tags[0]!.tagId, type: "FOLLOW", followStatus: "OPEN",
     });
     const response = await request(app.getHttpServer()).get(`/api/search?${query}`).set("Cookie", cookie).expect(200);
     expect(response.body.items).toHaveLength(1);
     expect(response.body.items[0]).toMatchObject({
-      entryId: follow.id, shiftInstanceId: follow.shiftInstanceId, operationalDate: "2026-11-13", type: "FOLLOW",
+      entryId: follow.id, shiftInstanceId: follow.shiftInstanceId, operationalDate, type: "FOLLOW",
     });
     const empty = await request(app.getHttpServer()).get("/api/search?q=definitely-not-present").set("Cookie", cookie).expect(200);
     expect(empty.body.items).toEqual([]);

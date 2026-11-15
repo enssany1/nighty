@@ -55,4 +55,28 @@ describe("UsersService invariants", () => {
     await expect(service.updateUser("other-admin", "last-admin", { status: "DISABLED" as never }))
       .rejects.toThrow(BadRequestException);
   });
+
+  it("permanently deletes an unused user and audits the outcome", async () => {
+    const user = { id: "unused", username: "unused", displayName: "Unused", role: "OPERATOR", status: "ACTIVE", mustChangePassword: false, shiftAssignments: [], _count: { instanceAssignments: 0, entries: 0, revisions: 0, tagPosts: 0, attachments: 0, completedFollows: 0, auditEvents: 0, settingsUpdated: 0 } };
+    const transaction = { user: { findUnique: jest.fn().mockResolvedValue(user), delete: jest.fn().mockResolvedValue(user) }, auditEvent: { create: jest.fn().mockResolvedValue({}) } };
+    const prisma = { $transaction: jest.fn(async (callback) => callback(transaction)) };
+    const service = new UsersService(prisma as never);
+    await expect(service.deleteUser("admin", "unused")).resolves.toEqual({ outcome: "DELETED", id: "unused" });
+    expect(transaction.user.delete).toHaveBeenCalledWith({ where: { id: "unused" } });
+    expect(transaction.auditEvent.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: "USER_DELETED" }) }));
+  });
+
+  it("deactivates a historically referenced user, removes future assignments, and audits the outcome", async () => {
+    const user = { id: "historic", username: "historic", displayName: "Historic", role: "OPERATOR", status: "ACTIVE", mustChangePassword: false, shiftAssignments: [{ shiftDefinitionId: "shift" }], _count: { instanceAssignments: 1, entries: 1, revisions: 0, tagPosts: 0, attachments: 0, completedFollows: 0, auditEvents: 1, settingsUpdated: 0 } };
+    const updated = { ...user, status: "DISABLED", shiftAssignments: [] };
+    const transaction = {
+      user: { findUnique: jest.fn().mockResolvedValue(user), update: jest.fn().mockResolvedValue(updated) },
+      shiftAssignment: { deleteMany: jest.fn().mockResolvedValue({ count: 1 }) }, session: { updateMany: jest.fn().mockResolvedValue({ count: 0 }) }, auditEvent: { create: jest.fn().mockResolvedValue({}) },
+    };
+    const prisma = { $transaction: jest.fn(async (callback) => callback(transaction)) };
+    const service = new UsersService(prisma as never);
+    await expect(service.deleteUser("admin", "historic")).resolves.toMatchObject({ outcome: "DEACTIVATED", user: { id: "historic", status: "DISABLED", shiftIds: [] } });
+    expect(transaction.shiftAssignment.deleteMany).toHaveBeenCalledWith({ where: { userId: "historic" } });
+    expect(transaction.auditEvent.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: "USER_DEACTIVATED" }) }));
+  });
 });

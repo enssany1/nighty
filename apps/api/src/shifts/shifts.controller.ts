@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Patch, Post, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, Req } from "@nestjs/common";
 import { ApiCookieAuth, ApiTags } from "@nestjs/swagger";
 import type { Request } from "express";
 import { ReorderShiftsRequestDto, SaveShiftDefinitionRequestDto } from "../common/dto/contracts";
@@ -32,6 +32,12 @@ export class ShiftsController {
   @Post("reorder")
   reorder(@Req() request: Request, @Body() body: ReorderShiftsRequestDto) {
     return this.shifts.reorder(request.auth!.user.id, body.shiftIds);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Delete(":id")
+  delete(@Req() request: Request, @Param("id") id: string) {
+    return this.shifts.delete(request.auth!.user.id, id);
   }
 }
 

@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { randomUUID } from "node:crypto";
 import request from "supertest";
 import { Test } from "@nestjs/testing";
 import { ValidationPipe, type INestApplication } from "@nestjs/common";
@@ -13,6 +14,7 @@ describe("daily canvas (e2e)", () => {
   let cookie: string;
   let csrf: string;
   const createdEntryIds: string[] = [];
+  const createdUserIds: string[] = [];
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -29,6 +31,8 @@ describe("daily canvas (e2e)", () => {
 
   afterAll(async () => {
     await prisma.entry.deleteMany({ where: { id: { in: createdEntryIds } } });
+    await prisma.shiftInstanceAssignment.deleteMany({ where: { userId: { in: createdUserIds } } });
+    await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });
     if (app) await app.close();
   });
 
@@ -43,17 +47,25 @@ describe("daily canvas (e2e)", () => {
     expect(closed.writable).toBe(false);
     expect(upcoming.writable).toBe(false);
 
-    const danielLogin = await request(app.getHttpServer()).post("/api/auth/login")
-      .send({ username: "daniel", password: "NightyDemo!2026" }).expect(201);
-    const danielCanvas = await request(app.getHttpServer()).get(`/api/canvas/${date}`)
-      .set("Cookie", danielLogin.headers["set-cookie"]?.[0] as string).expect(200);
-    expect(danielCanvas.body.shifts.find((shift: { status: string }) => shift.status === "ACTIVE").writable).toBe(true);
+    const passwordHash = (await prisma.user.findUniqueOrThrow({ where: { username: "aisha" }, select: { passwordHash: true } })).passwordHash;
+    const assignedId = randomUUID(); const unassignedId = randomUUID();
+    createdUserIds.push(assignedId, unassignedId);
+    await prisma.user.createMany({ data: [
+      { id: assignedId, username: `canvas.assigned.${assignedId.slice(0,8)}`, displayName: "Canvas Assigned", passwordHash, role: "OPERATOR" },
+      { id: unassignedId, username: `canvas.unassigned.${unassignedId.slice(0,8)}`, displayName: "Canvas Unassigned", passwordHash, role: "OPERATOR" },
+    ] });
+    await prisma.shiftInstanceAssignment.create({ data: { shiftInstanceId: active.id, userId: assignedId } });
+    const assignedLogin = await request(app.getHttpServer()).post("/api/auth/login")
+      .send({ username: `canvas.assigned.${assignedId.slice(0,8)}`, password: "NightyDemo!2026" }).expect(201);
+    const assignedCanvas = await request(app.getHttpServer()).get(`/api/canvas/${date}`)
+      .set("Cookie", assignedLogin.headers["set-cookie"]?.[0] as string).expect(200);
+    expect(assignedCanvas.body.shifts.find((shift: { status: string }) => shift.status === "ACTIVE").writable).toBe(true);
 
-    const marcusLogin = await request(app.getHttpServer()).post("/api/auth/login")
-      .send({ username: "marcus", password: "NightyDemo!2026" }).expect(201);
-    const marcusCanvas = await request(app.getHttpServer()).get(`/api/canvas/${date}`)
-      .set("Cookie", marcusLogin.headers["set-cookie"]?.[0] as string).expect(200);
-    expect(marcusCanvas.body.shifts.find((shift: { status: string }) => shift.status === "ACTIVE").writable).toBe(false);
+    const unassignedLogin = await request(app.getHttpServer()).post("/api/auth/login")
+      .send({ username: `canvas.unassigned.${unassignedId.slice(0,8)}`, password: "NightyDemo!2026" }).expect(201);
+    const unassignedCanvas = await request(app.getHttpServer()).get(`/api/canvas/${date}`)
+      .set("Cookie", unassignedLogin.headers["set-cookie"]?.[0] as string).expect(200);
+    expect(unassignedCanvas.body.shifts.find((shift: { status: string }) => shift.status === "ACTIVE").writable).toBe(false);
   });
 
   it("creates normalized entries, toggles one To-do, and snapshots edits", async () => {
