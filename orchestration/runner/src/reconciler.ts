@@ -100,6 +100,7 @@ export type ReconcilerOptions = {
   reviewerLeaseMs?: number;
   heartbeatIntervalMs?: number;
   gitCheckpoint?: GitCheckpointService;
+  maxDevelopmentAttempts?: number;
 };
 
 type ReadArtifact = {
@@ -732,8 +733,15 @@ export class Reconciler {
     if (task.state !== "READY_FOR_DEVELOPMENT" && task.state !== "READY_FOR_CORRECTION") {
       throw new Error("task is not ready for development: " + task.state);
     }
-    if (this.#deliveryNames(taskId).length > 0) {
-      throw new Error("a delivery artifact is already present for " + taskId);
+    const attemptNumberValue = this.#nextAttemptNumber(taskId);
+    const maxAttempts = this.#options.maxDevelopmentAttempts ?? 3;
+    if (attemptNumberValue > maxAttempts) {
+      this.#safeTransition(task, task.state, "HUMAN_REVIEW", "correction attempts exhausted");
+      return { kind: "WAIT", taskId, reason: "correction attempts exhausted" };
+    }
+    const attempt = "A" + String(attemptNumberValue).padStart(2, "0");
+    if (this.#deliveryNames(taskId).some((name) => name.includes("-" + attempt + "-"))) {
+      throw new Error("a delivery artifact is already present for " + taskId + " " + attempt);
     }
     const baseline = this.#options.gitCheckpoint
       ? task.state === "READY_FOR_DEVELOPMENT"
@@ -744,7 +752,6 @@ export class Reconciler {
     this.#options.state.transition(taskId, expected, "IN_DEVELOPMENT", "dispatch", {
       expectedRevision: task.revision,
     });
-    const attempt = "A" + String(this.#nextAttemptNumber(taskId)).padStart(2, "0");
     this.#options.state.beginAttempt(taskId, task.revision, attempt);
     const leaseMs = this.#options.developerLeaseMs ?? 30 * 60_000;
     const run = this.#options.state.beginRun({
@@ -820,6 +827,51 @@ export class Reconciler {
       this.#safeTransition(task, "IN_DEVELOPMENT", "EXECUTION_FAILED", "development invocation failed");
       throw error;
     }
+  }
+
+  prepareCorrection(taskId: string): ReconcileAction {
+    const task = this.#options.state.getTask(taskId);
+    if (!task) throw new Error("unknown task " + taskId);
+    if (task.state !== "CHANGES_REQUIRED") {
+      throw new Error("task does not require correction: " + task.state);
+    }
+    const nextAttempt = this.#nextAttemptNumber(taskId);
+    const maxAttempts = this.#options.maxDevelopmentAttempts ?? 3;
+    if (nextAttempt > maxAttempts) {
+      this.#safeTransition(task, "CHANGES_REQUIRED", "HUMAN_REVIEW", "correction attempts exhausted");
+      return { kind: "WAIT", taskId, reason: "correction attempts exhausted" };
+    }
+    this.#safeTransition(task, "CHANGES_REQUIRED", "READY_FOR_CORRECTION", "correction prepared");
+    return {
+      kind: "WAIT",
+      taskId,
+      attempt: "A" + String(nextAttempt).padStart(2, "0"),
+      reason: "correction attempt prepared",
+    };
+  }
+
+  prepareReviewRetry(taskId: string): ReconcileAction {
+    const task = this.#options.state.getTask(taskId);
+    if (!task) throw new Error("unknown task " + taskId);
+    if (task.state !== "EXECUTION_FAILED") {
+      throw new Error("task is not in execution failure: " + task.state);
+    }
+    const latestRun = this.#options.state.listRuns(taskId).at(-1);
+    if (!latestRun || latestRun.role !== "reviewer") {
+      throw new Error("latest failed run is not a reviewer run");
+    }
+    const reviewed = this.#reviewedAttempt(task);
+    if (!reviewed || reviewed.deliveryDigest === null) {
+      throw new Error("review retry requires the recorded delivery");
+    }
+    this.#safeTransition(task, "EXECUTION_FAILED", "DELIVERED", "review retry prepared");
+    return {
+      kind: "WAIT",
+      taskId,
+      attempt: reviewed.attempt,
+      digest: reviewed.deliveryDigest,
+      reason: "review retry prepared",
+    };
   }
 
   async dispatchReview(taskId: string): Promise<ReconcileAction> {

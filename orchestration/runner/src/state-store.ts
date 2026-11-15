@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 
 import { SecretRedactor } from "./redaction.ts";
@@ -133,7 +134,7 @@ const ALLOWED: Record<TaskState, TaskState[]> = {
   UNDER_REVIEW: ["APPROVED", "CHANGES_REQUIRED", "EXECUTION_FAILED", "INVALID_REPORT", "HUMAN_REVIEW", "BLOCKED"],
   CHANGES_REQUIRED: ["READY_FOR_CORRECTION", "HUMAN_REVIEW", "BLOCKED"],
   READY_FOR_CORRECTION: ["IN_DEVELOPMENT", "HUMAN_REVIEW", "BLOCKED"],
-  EXECUTION_FAILED: ["READY_FOR_DEVELOPMENT", "READY_FOR_CORRECTION", "BLOCKED"],
+  EXECUTION_FAILED: ["DELIVERED", "READY_FOR_DEVELOPMENT", "READY_FOR_CORRECTION", "BLOCKED"],
   INVALID_REPORT: ["IN_DEVELOPMENT", "UNDER_REVIEW", "HUMAN_REVIEW", "BLOCKED"],
   APPROVED: ["CHECKPOINTED", "HUMAN_REVIEW", "BLOCKED"],
   CHECKPOINTED: [],
@@ -181,7 +182,8 @@ export class StateStore {
   constructor(filename: string, options: { redactor?: SecretRedactor } = {}) {
     this.#database = new DatabaseSync(filename);
     this.#redactor = options.redactor ?? new SecretRedactor([]);
-    this.#database.exec(
+    try {
+      this.#database.exec(
       "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;",
     );
     this.#database.exec(`
@@ -270,8 +272,12 @@ export class StateStore {
     if (!leaseColumns.some((column) => column.name === "process_started_at")) {
       this.#database.exec("ALTER TABLE leases ADD COLUMN process_started_at TEXT");
     }
-    if (!leaseColumns.some((column) => column.name === "process_executable")) {
-      this.#database.exec("ALTER TABLE leases ADD COLUMN process_executable TEXT");
+      if (!leaseColumns.some((column) => column.name === "process_executable")) {
+        this.#database.exec("ALTER TABLE leases ADD COLUMN process_executable TEXT");
+      }
+    } catch (error) {
+      this.#database.close();
+      throw error;
     }
   }
 
@@ -884,4 +890,12 @@ export class StateStore {
       reason: row.reason,
     }));
   }
+}
+
+/** Opens an initialized authority store without silently creating a replacement. */
+export function openExistingStateStore(filePath: string): StateStore {
+  if (!existsSync(filePath)) {
+    throw new Error("authoritative state database is missing; recovery requires audit replay and human approval");
+  }
+  return new StateStore(filePath);
 }

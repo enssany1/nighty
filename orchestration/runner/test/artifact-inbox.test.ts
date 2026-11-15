@@ -59,6 +59,21 @@ test("failed validation never publishes a partial artifact", () => {
   });
 });
 
+test("atomic rename failure exposes no artifact and a later retry succeeds", () => {
+  withDirectory((directory) => {
+    assert.throws(
+      () => publishArtifact(directory, "TASK-001-A01-DELIVERY.md", "content", () => undefined, {
+        rename: () => { throw new Error("injected rename failure"); },
+      }),
+      /injected rename failure/,
+    );
+    assert.deepEqual(discoverArtifacts(directory), []);
+    const retry = publishArtifact(directory, "TASK-001-A01-DELIVERY.md", "content", () => undefined);
+    assert.equal(retry.status, "published");
+    assert.deepEqual(discoverArtifacts(directory), ["TASK-001-A01-DELIVERY.md"]);
+  });
+});
+
 test("discovery ignores temporary hidden and unrecognized files", () => {
   withDirectory((directory) => {
     for (const name of ["TASK-001.md", "TASK-002.md.tmp", ".editor.md", "notes.txt"]) {

@@ -568,6 +568,92 @@ test("reconciler composes a reviewer producer and preserves the delivery", async
   });
 });
 
+test("correction preparation advances attempts and stops before a fourth attempt", async () => {
+  await withHarness(async ({ reconciler, store, deliveries }) => {
+    store.createTask("TASK-901", 1);
+    store.transition("TASK-901", "PLANNED", "READY_FOR_DEVELOPMENT", "ready");
+    store.transition("TASK-901", "READY_FOR_DEVELOPMENT", "IN_DEVELOPMENT", "dispatch");
+    store.transition("TASK-901", "IN_DEVELOPMENT", "DELIVERED", "delivered");
+    store.transition("TASK-901", "DELIVERED", "UNDER_REVIEW", "review");
+    store.transition("TASK-901", "UNDER_REVIEW", "CHANGES_REQUIRED", "changes");
+    writeFileSync(path.join(deliveries, "TASK-901-A01-DELIVERY.md"), deliveryMarkdown());
+
+    const prepared = reconciler.prepareCorrection("TASK-901");
+    assert.equal(prepared.attempt, "A02");
+    assert.equal(store.getTask("TASK-901")?.state, "READY_FOR_CORRECTION");
+  });
+
+  await withHarness(async ({ reconciler, store, deliveries }) => {
+    store.createTask("TASK-901", 1);
+    store.transition("TASK-901", "PLANNED", "READY_FOR_DEVELOPMENT", "ready");
+    store.transition("TASK-901", "READY_FOR_DEVELOPMENT", "IN_DEVELOPMENT", "dispatch");
+    store.transition("TASK-901", "IN_DEVELOPMENT", "DELIVERED", "delivered");
+    store.transition("TASK-901", "DELIVERED", "UNDER_REVIEW", "review");
+    store.transition("TASK-901", "UNDER_REVIEW", "CHANGES_REQUIRED", "changes");
+    for (const attempt of ["A01", "A02", "A03"]) {
+      writeFileSync(
+        path.join(deliveries, "TASK-901-" + attempt + "-DELIVERY.md"),
+        deliveryMarkdown({ attempt }),
+      );
+    }
+
+    const stopped = reconciler.prepareCorrection("TASK-901");
+    assert.equal(stopped.reason, "correction attempts exhausted");
+    assert.equal(store.getTask("TASK-901")?.state, "HUMAN_REVIEW");
+  });
+});
+
+test("reviewer crash preserves delivery and retries with a new run identity", async () => {
+  const delivery = deliveryMarkdown();
+  const taskContent = "---\nschema: nighty.task/v1\n---\n\n## Objective\n\nBounded.\n";
+  let invocation = 0;
+  const producer: ArtifactProducer = {
+    async run(input) {
+      invocation += 1;
+      input.onProcessStarted?.({
+        runId: "provider-" + invocation,
+        rootPid: process.pid,
+        startedAt: new Date().toISOString(),
+      });
+      if (invocation === 1) return { process: { exitCode: 2, timedOut: false } };
+      writeFileSync(input.outputPath, reviewMarkdown({
+        deliverySha: sha256(delivery),
+        attempt: input.attempt,
+        taskSha: sha256(taskContent),
+      }));
+      return { process: { exitCode: 0, timedOut: false } };
+    },
+  };
+  const git = {
+    branch: "main", head: "c".repeat(40), headTree: "0".repeat(40), clean: false,
+    changes: ["?? src.ts"], inventory: [], inventorySha256: "e".repeat(64),
+    sourceSha256: "d".repeat(64),
+  };
+  await withHarness(async ({ reconciler, store, directory, deliveries }) => {
+    toInDevelopment(store);
+    writeFileSync(path.join(deliveries, "TASK-901-A01-DELIVERY.md"), delivery);
+    store.recordArtifact("TASK-901", "A01", "delivery", sha256(delivery));
+    store.beginAttempt("TASK-901", 1, "A01");
+    store.transition("TASK-901", "IN_DEVELOPMENT", "DELIVERED", "delivery recorded");
+    writeFileSync(path.join(directory, "orchestration", "tasks", "TASK-901.md"), taskContent);
+
+    const failed = await reconciler.dispatchReview("TASK-901");
+    assert.equal(failed.kind, "EXECUTION_FAILED");
+    assert.equal(store.getTask("TASK-901")?.state, "EXECUTION_FAILED");
+    assert.equal(existsSync(path.join(deliveries, "TASK-901-A01-DELIVERY.md")), true);
+    const firstRun = store.listRuns("TASK-901").at(-1)?.runId;
+
+    reconciler.prepareReviewRetry("TASK-901");
+    const retried = await reconciler.dispatchReview("TASK-901");
+    assert.equal(retried.kind, "WAIT");
+    const secondRun = store.listRuns("TASK-901").at(-1)?.runId;
+    assert.notEqual(secondRun, firstRun);
+    const reviewed = await reconciler.reconcileOnce();
+    assert.equal(reviewed.actions[0]?.kind, "REVIEW_RECORDED");
+    assert.equal(store.getTask("TASK-901")?.state, "APPROVED");
+  }, { reviewer: producer, inspectSource: () => git });
+});
+
 function initRepository(directory: string): void {
   runGit(directory, ["init", "-b", "main"]);
   runGit(directory, ["config", "user.name", "Nighty Test"]);
@@ -621,6 +707,11 @@ test("checkpoint applies the approval integrity gate immediately before CHECKPOI
     assert.equal(runGit(harness.directory, ["status", "--porcelain", "--", "src.ts"]), "");
     assert.equal(harness.store.getTask("TASK-901")?.state, "CHECKPOINTED");
     assert.equal(harness.store.getTask("TASK-901")?.active, true);
+    assert.throws(
+      () => harness.reconciler.checkpoint("TASK-901"),
+      /checkpoint requires APPROVED task state/,
+    );
+    assert.equal(runGit(harness.directory, ["rev-list", "--count", "HEAD"]), "2");
   });
 });
 

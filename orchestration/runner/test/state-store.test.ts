@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { StateStore } from "../src/state-store.ts";
+import { openExistingStateStore, StateStore } from "../src/state-store.ts";
 import { SecretRedactor } from "../src/redaction.ts";
 
 function withStore(run: (store: StateStore) => void | Promise<void>): Promise<void> {
@@ -378,6 +378,30 @@ test("state events redact the explicit credential value before persistence", asy
     assert.match(serialized, /\[REDACTED\]/);
   } finally {
     store.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("existing-state open fails closed for a missing database", () => {
+  const directory = mkdtempSync(path.join(tmpdir(), "nighty-missing-state-"));
+  try {
+    const database = path.join(directory, "orchestration.db");
+    assert.throws(() => openExistingStateStore(database), /state database is missing/);
+    assert.throws(() => readFileSync(database), /ENOENT/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("corrupt authoritative state is never overwritten silently", () => {
+  const directory = mkdtempSync(path.join(tmpdir(), "nighty-corrupt-state-"));
+  try {
+    const database = path.join(directory, "orchestration.db");
+    const corrupt = Buffer.from("not-a-sqlite-database\0preserve-me", "utf8");
+    writeFileSync(database, corrupt);
+    assert.throws(() => openExistingStateStore(database));
+    assert.deepEqual(readFileSync(database), corrupt);
+  } finally {
     rmSync(directory, { recursive: true, force: true });
   }
 });

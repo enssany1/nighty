@@ -32,7 +32,7 @@ export function publishArtifact(
   finalName: string,
   contents: string,
   validate: (contents: string) => void,
-  options: { maxBytes?: number } = {},
+  options: { maxBytes?: number; rename?: (from: string, to: string) => void } = {},
 ): PublishResult {
   if (path.basename(finalName) !== finalName || !finalName.endsWith(".md")) {
     throw new Error("invalid artifact filename");
@@ -69,7 +69,7 @@ export function publishArtifact(
       maxBytes,
       rejectControlArtifacts: true,
     }));
-    renameSync(temporaryPath, finalPath);
+    (options.rename ?? renameSync)(temporaryPath, finalPath);
     return { status: "published", sha256, path: finalPath };
   } catch (error) {
     if (descriptor !== undefined) closeSync(descriptor);
