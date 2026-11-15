@@ -106,3 +106,48 @@ test("finalize records a timed-out command as a failed required check", async ()
     /required verification command failed: slow/,
   );
 });
+
+test("verification claims must match observed pass, fail, and unverified reality", async () => {
+  const registry = new VerificationRegistry();
+  registry.register("pass", nodeCommand(["-e", "process.exit(0)"]));
+  registry.register("fail", nodeCommand(["-e", "process.exit(4)"]));
+  registry.register("unrun", nodeCommand(["-e", "process.exit(0)"]));
+  registry.seal();
+  await registry.run("pass", process.cwd(), {});
+  await registry.run("fail", process.cwd(), {});
+
+  const reality = registry.verificationReality(["pass", "fail", "unrun"]);
+  assert.deepEqual(reality.map(({ id, status, exitCode }) => ({ id, status, exitCode })), [
+    { id: "pass", status: "PASSED", exitCode: 0 },
+    { id: "fail", status: "FAILED", exitCode: 4 },
+    { id: "unrun", status: "UNVERIFIED", exitCode: null },
+  ]);
+  assert.doesNotThrow(() => registry.validateClaims([
+    { id: "pass", status: "PASSED" },
+    { id: "fail", status: "FAILED" },
+    { id: "unrun", status: "UNVERIFIED" },
+  ], ["pass", "fail", "unrun"]));
+  assert.throws(
+    () => registry.validateClaims([{ id: "fail", status: "PASSED" }], ["fail"]),
+    /claim does not match observed reality/,
+  );
+});
+
+test("verification claims cannot add commands or inject arguments", () => {
+  const registry = new VerificationRegistry();
+  registry.register("check", nodeCommand(["--version"]));
+  registry.seal();
+  assert.throws(
+    () => registry.validateClaims([
+      { id: "check -- --danger", status: "PASSED" },
+    ], ["check"]),
+    /unregistered verification claim/,
+  );
+  assert.throws(
+    () => registry.validateClaims([
+      { id: "check", status: "UNVERIFIED" },
+      { id: "check", status: "UNVERIFIED" },
+    ], ["check"]),
+    /duplicate verification claim/,
+  );
+});

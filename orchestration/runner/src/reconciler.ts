@@ -13,6 +13,7 @@ import {
   readBoundedUtf8File,
 } from "./bounded-io.ts";
 import { inspectGit, type GitInspection } from "./git-gate.ts";
+import { GitCheckpoint } from "./git-checkpoint.ts";
 import {
   createApprovalBinding,
   verifyCheckpointIntegrity,
@@ -55,7 +56,10 @@ export type ReconcileAction = {
   quarantinePath?: string;
   advancedOnly?: boolean;
   errors?: string[];
+  commit?: string;
 };
+
+export type GitCheckpointService = Pick<GitCheckpoint, "assertCleanBaseline" | "commit">;
 
 export type ReconcileResult = {
   actions: ReconcileAction[];
@@ -95,6 +99,7 @@ export type ReconcilerOptions = {
   developerLeaseMs?: number;
   reviewerLeaseMs?: number;
   heartbeatIntervalMs?: number;
+  gitCheckpoint?: GitCheckpointService;
 };
 
 type ReadArtifact = {
@@ -158,6 +163,7 @@ export class Reconciler {
   readonly #maxArtifactBytes: number;
   readonly #maxTaskBytes: number;
   readonly #isPidAlive: (pid: number) => boolean;
+  readonly #gitCheckpoint: GitCheckpointService;
 
   constructor(options: ReconcilerOptions) {
     this.#options = options;
@@ -165,6 +171,7 @@ export class Reconciler {
     this.#maxArtifactBytes = options.maxArtifactBytes ?? 2 * 1024 * 1024;
     this.#maxTaskBytes = options.maxTaskBytes ?? 1024 * 1024;
     this.#isPidAlive = options.isPidAlive ?? defaultIsPidAlive;
+    this.#gitCheckpoint = options.gitCheckpoint ?? new GitCheckpoint({ root: options.root });
   }
 
   get #tasksDirectory(): string {
@@ -728,6 +735,11 @@ export class Reconciler {
     if (this.#deliveryNames(taskId).length > 0) {
       throw new Error("a delivery artifact is already present for " + taskId);
     }
+    const baseline = this.#options.gitCheckpoint
+      ? task.state === "READY_FOR_DEVELOPMENT"
+        ? this.#gitCheckpoint.assertCleanBaseline()
+        : this.inspectSource()
+      : null;
     const expected = task.state;
     this.#options.state.transition(taskId, expected, "IN_DEVELOPMENT", "dispatch", {
       expectedRevision: task.revision,
@@ -744,7 +756,15 @@ export class Reconciler {
       leaseMs,
     });
     try {
-      const prompt = this.readTaskPrompt(taskId);
+      const prompt = baseline === null
+        ? this.readTaskPrompt(taskId)
+        : [
+            "Git baseline commit: " + baseline.head,
+            "Git branch: " + baseline.branch,
+            "The delivery artifact must include baseline_commit: " + baseline.head,
+            "",
+            this.readTaskPrompt(taskId),
+          ].join("\n");
       const outputPath = path.join(
         this.#options.deliveriesDirectory,
         taskId + "-" + attempt + "-DELIVERY.md",
@@ -941,7 +961,7 @@ export class Reconciler {
    * It re-reads both immutable artifacts, binds task/revision/attempt,
    * delivery/review digests, branch/head/baseline, the reviewed source diff and
    * tree digest, and requires the current worktree source inventory to match
-   * exactly. No Git commit is created here.
+   * exactly before creating one sequential Conventional Commit.
    */
   checkpoint(taskId: string): ReconcileAction {
     const task = this.#options.state.getTask(taskId);
@@ -1036,12 +1056,15 @@ export class Reconciler {
       },
     });
 
+    const committed = this.#gitCheckpoint.commit({ taskId, approved: git });
+
     this.#safeTransition(task, "APPROVED", "CHECKPOINTED", "approval integrity verified");
     return {
       kind: "CHECKPOINTED",
       taskId,
       attempt: reviewed.attempt,
       digest: approval.approval_sha256,
+      commit: committed.commit,
     };
   }
 }

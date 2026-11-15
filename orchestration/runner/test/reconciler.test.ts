@@ -16,6 +16,7 @@ import path from "node:path";
 import test from "node:test";
 
 import { CodexAdapter } from "../src/codex-adapter.ts";
+import { GitCheckpoint } from "../src/git-checkpoint.ts";
 import {
   type ArtifactProducer,
   type ReconcilerOptions,
@@ -615,9 +616,27 @@ test("checkpoint applies the approval integrity gate immediately before CHECKPOI
     const action = harness.reconciler.checkpoint("TASK-901");
     assert.equal(action.kind, "CHECKPOINTED");
     assert.match(action.digest ?? "", /^[0-9a-f]{64}$/);
+    assert.match(action.commit ?? "", /^[0-9a-f]{40}$/);
+    assert.equal(runGit(harness.directory, ["log", "-1", "--pretty=%s"]), "feat(task-901): checkpoint approved changes");
+    assert.equal(runGit(harness.directory, ["status", "--porcelain", "--", "src.ts"]), "");
     assert.equal(harness.store.getTask("TASK-901")?.state, "CHECKPOINTED");
     assert.equal(harness.store.getTask("TASK-901")?.active, true);
   });
+});
+
+test("checkpoint commit failure preserves APPROVED state", async () => {
+  const failing = {
+    assertCleanBaseline: () => { throw new Error("not used"); },
+    commit: () => { throw new Error("injected checkpoint commit failure"); },
+  };
+  await withHarness(async (harness) => {
+    await approveForCheckpoint(harness);
+    assert.throws(
+      () => harness.reconciler.checkpoint("TASK-901"),
+      /injected checkpoint commit failure/,
+    );
+    assert.equal(harness.store.getTask("TASK-901")?.state, "APPROVED");
+  }, { gitCheckpoint: failing });
 });
 
 test("checkpoint refuses source or inventory mutations made after review", async () => {

@@ -35,6 +35,18 @@ export type VerificationReport = VerificationSeal & {
   reportSha256: string;
 };
 
+export type VerificationStatus = "PASSED" | "FAILED" | "UNVERIFIED";
+
+export type VerificationClaim = {
+  id: string;
+  status: VerificationStatus;
+};
+
+export type VerificationReality = VerificationClaim & {
+  exitCode: number | null;
+  timedOut: boolean;
+};
+
 type RecordedRun = {
   result: ProcessResult;
   executedAt: string;
@@ -103,6 +115,68 @@ export class VerificationRegistry {
     });
     this.#results.set(id, { result, executedAt: new Date().toISOString() });
     return result;
+  }
+
+  verificationReality(requiredIds?: string[]): VerificationReality[] {
+    if (this.#seal === null) {
+      throw new Error("verification registry must be sealed before reporting reality");
+    }
+    const required = requiredIds ?? [...this.#commands.keys()];
+    if (new Set(required).size !== required.length) {
+      throw new Error("required verification identifiers must be unique");
+    }
+    return required.map((id) => {
+      if (!this.#commands.has(id)) {
+        throw new Error("required verification command is not registered: " + id);
+      }
+      const recorded = this.#results.get(id);
+      if (!recorded) {
+        return { id, status: "UNVERIFIED", exitCode: null, timedOut: false };
+      }
+      const passed = recorded.result.exitCode === 0 && !recorded.result.timedOut;
+      return {
+        id,
+        status: passed ? "PASSED" : "FAILED",
+        exitCode: recorded.result.exitCode,
+        timedOut: recorded.result.timedOut,
+      };
+    });
+  }
+
+  validateClaims(claims: VerificationClaim[], requiredIds?: string[]): void {
+    if (!Array.isArray(claims) || claims.length > 256) {
+      throw new Error("verification claims must be a bounded array");
+    }
+    const required = requiredIds ?? [...this.#commands.keys()];
+    const requiredSet = new Set(required);
+    const byId = new Map<string, VerificationClaim>();
+    for (const claim of claims) {
+      if (!claim || typeof claim !== "object" || Array.isArray(claim)) {
+        throw new Error("invalid verification claim");
+      }
+      const keys = Object.keys(claim).sort();
+      if (keys.join(",") !== "id,status") {
+        throw new Error("verification claims cannot supply commands or arguments");
+      }
+      if (!this.#commands.has(claim.id) || !requiredSet.has(claim.id)) {
+        throw new Error("unregistered verification claim: " + String(claim.id));
+      }
+      if (!["PASSED", "FAILED", "UNVERIFIED"].includes(claim.status)) {
+        throw new Error("invalid verification claim status: " + String(claim.status));
+      }
+      if (byId.has(claim.id)) throw new Error("duplicate verification claim: " + claim.id);
+      byId.set(claim.id, claim);
+    }
+    const reality = this.verificationReality(required);
+    for (const observed of reality) {
+      const claim = byId.get(observed.id);
+      if (!claim) throw new Error("missing verification claim: " + observed.id);
+      if (claim.status !== observed.status) {
+        throw new Error(
+          "verification claim does not match observed reality: " + observed.id,
+        );
+      }
+    }
   }
 
   finalize(requiredIds?: string[]): VerificationReport {
