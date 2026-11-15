@@ -1,8 +1,10 @@
 services:
   web:
     networks:
-      - default
-      - sms-one-edge
+      default: {}
+      sms-one-edge:
+        aliases:
+          - nighty-web
 
 networks:
   sms-one-edge:
