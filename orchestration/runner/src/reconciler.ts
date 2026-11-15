@@ -815,6 +815,7 @@ export class Reconciler {
     if (this.#reviewNames(taskId, reviewed.attempt).length > 0) {
       throw new Error("a review artifact is already present for " + taskId);
     }
+    const git = this.inspectSource();
     this.#options.state.transition(taskId, "DELIVERED", "UNDER_REVIEW", "review dispatch", {
       expectedRevision: task.revision,
     });
@@ -840,6 +841,12 @@ export class Reconciler {
       const prompt = [
         "Task content SHA-256: " + taskDigest,
         "The review artifact must include task_sha256: " + taskDigest,
+        "Review the actual repository state below; do not infer these evidence values.",
+        "The review artifact must include head_commit: " + git.head,
+        "The review artifact must include branch: " + git.branch,
+        "The review artifact must include source_sha256: " + git.sourceSha256,
+        "The review artifact must include tree_sha256: " + git.inventorySha256,
+        "Repository evidence JSON: " + JSON.stringify(git),
         "",
         this.readTaskPrompt(taskId),
         "",

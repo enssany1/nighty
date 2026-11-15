@@ -82,6 +82,11 @@ test("review approval is invalid when mandatory coverage is unverified", () => {
     reviewed_by: "codex",
     created_at: "2026-11-14T01:00:00+04:00",
     delivery_sha256: "a".repeat(64),
+    baseline_commit: "b".repeat(40),
+    head_commit: "c".repeat(40),
+    branch: "main",
+    source_sha256: "d".repeat(64),
+    tree_sha256: "e".repeat(64),
     task_sha256: "f".repeat(64),
     mandatory_criteria_verified: false,
     sections: [
@@ -100,6 +105,32 @@ test("review approval is invalid when mandatory coverage is unverified", () => {
     ok: false,
     errors: ["APPROVED requires all mandatory criteria verified"],
   });
+});
+
+test("review approval cannot omit repository evidence", () => {
+  const result = validateReview({
+    schema: "nighty.review/v1",
+    task_id: "TASK-002",
+    task_revision: 1,
+    attempt: "A01",
+    run_id: "d5a65ecb-1f67-4327-92f8-afaf2aa3a53c",
+    decision: "APPROVED",
+    reviewed_by: "codex",
+    created_at: "2026-11-14T01:00:00+04:00",
+    delivery_sha256: "a".repeat(64),
+    task_sha256: "f".repeat(64),
+    mandatory_criteria_verified: true,
+    sections: [
+      "Decision", "Independent inspection", "Requirement-by-requirement findings",
+      "Tests independently executed", "Security/architecture review", "Actionable changes",
+      "Limitations/unverified coverage", "Next transition",
+    ],
+  });
+  assert.ok(result.errors.includes("invalid review baseline commit"));
+  assert.ok(result.errors.includes("invalid review head commit"));
+  assert.ok(result.errors.includes("invalid review branch"));
+  assert.ok(result.errors.includes("invalid review source digest"));
+  assert.ok(result.errors.includes("invalid review tree digest"));
 });
 
 test("artifact paths cannot escape the orchestration root", () => {
@@ -204,6 +235,11 @@ test("review validation binds an optional expected identity and delivery digest"
     reviewed_by: "codex",
     created_at: "2026-11-14T01:00:00+04:00",
     delivery_sha256: "a".repeat(64),
+    baseline_commit: "b".repeat(40),
+    head_commit: "c".repeat(40),
+    branch: "main",
+    source_sha256: "d".repeat(64),
+    tree_sha256: "e".repeat(64),
     task_sha256: "f".repeat(64),
     mandatory_criteria_verified: true,
     sections: [

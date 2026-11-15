@@ -27,6 +27,8 @@ const VALID_DELIVERY = {
   delivered_commit: "UNCOMMITTED",
   created_by: "deepseek",
   created_at: "2026-11-14T18:00:00+04:00",
+  sections: ["Implementation summary"],
+  section_content: { "Implementation summary": "Implemented." },
 };
 
 test("schema validator enforces required, const, pattern, and additional properties", () => {
@@ -85,6 +87,12 @@ test("tightened delivery schema rejects unknown fields and malformed identities"
   assert.ok(
     validateAgainstSchema({ ...VALID_DELIVERY, created_at: "yesterday" }, schema).some((error) =>
       error.includes("/created_at"),
+    ),
+  );
+  const { section_content: _sectionContent, ...withoutContent } = VALID_DELIVERY;
+  assert.ok(
+    validateAgainstSchema(withoutContent, schema).some((error) =>
+      error.includes("section_content"),
     ),
   );
 });

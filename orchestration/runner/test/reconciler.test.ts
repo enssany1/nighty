@@ -545,12 +545,26 @@ test("reconciler composes a reviewer producer and preserves the delivery", async
     const dispatch = await reconciler.dispatchReview("TASK-901");
     assert.equal(dispatch.kind, "WAIT");
     assert.match(capturedPrompt, new RegExp("task_sha256: " + sha256(taskContent)));
+    assert.match(capturedPrompt, /head_commit: c{40}/);
+    assert.match(capturedPrompt, /source_sha256: d{64}/);
     assert.equal(store.getTask("TASK-901")?.state, "UNDER_REVIEW");
     const review = await reconciler.reconcileOnce();
     assert.deepEqual(review.actions.map((action) => action.kind), ["REVIEW_RECORDED"]);
     assert.equal(store.getTask("TASK-901")?.state, "APPROVED");
     assert.equal(store.getTask("TASK-901")?.active, true);
-  }, { reviewer: producer });
+  }, {
+    reviewer: producer,
+    inspectSource: () => ({
+      branch: "main",
+      head: "c".repeat(40),
+      headTree: "0".repeat(40),
+      clean: false,
+      changes: ["?? src.ts"],
+      inventory: [],
+      inventorySha256: "e".repeat(64),
+      sourceSha256: "d".repeat(64),
+    }),
+  });
 });
 
 function initRepository(directory: string): void {

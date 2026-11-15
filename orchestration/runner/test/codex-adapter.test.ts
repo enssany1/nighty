@@ -46,7 +46,47 @@ const VALID_REVIEW = {
     "Limitations/unverified coverage",
     "Next transition",
   ],
+  section_content: {
+    "Decision": "Approved.",
+    "Independent inspection": "Inspected source and diff.",
+    "Requirement-by-requirement findings": "All requirements satisfied.",
+    "Tests independently executed": "Focused checks passed.",
+    "Security/architecture review": "No blocking finding.",
+    "Actionable changes": "None.",
+    "Limitations/unverified coverage": "None.",
+    "Next transition": "Checkpoint.",
+  },
 };
+
+test("Codex adapter places exec-specific arguments after the exec subcommand", async () => {
+  await withTemp(async (directory) => {
+    const fakeCli = path.join(directory, "fake-args.mjs");
+    const schema = path.join(directory, "schema.json");
+    const output = path.join(directory, "result.json");
+    writeFileSync(schema, JSON.stringify({ type: "object" }));
+    writeFileSync(fakeCli, [
+      "import fs from 'node:fs';",
+      "const args = process.argv.slice(2);",
+      "fs.writeFileSync(args[args.indexOf('-o') + 1], JSON.stringify({ args }));",
+    ].join("\n"));
+    const adapter = new CodexAdapter({
+      executable: process.execPath,
+      baseArgs: [fakeCli],
+      execArgs: ["--ephemeral", "--ignore-user-config"],
+      projectRoot: directory,
+      environment: {},
+      timeoutMs: 2_000,
+      maxOutputBytes: 8_192,
+    });
+    const result = await adapter.run({
+      prompt: "review",
+      outputSchemaPath: schema,
+      outputPath: output,
+    });
+    const args = result.output.args as string[];
+    assert.deepEqual(args.slice(0, 3), ["exec", "--ephemeral", "--ignore-user-config"]);
+  });
+});
 
 function script(body: string): string {
   return body;

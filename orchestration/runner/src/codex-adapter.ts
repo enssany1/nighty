@@ -12,6 +12,7 @@ import { loadSchemaFile, validateStructuredResult } from "./schema.ts";
 export type CodexAdapterOptions = {
   executable: string;
   baseArgs?: string[];
+  execArgs?: string[];
   projectRoot: string;
   environment: Record<string, string>;
   timeoutMs: number;
@@ -62,6 +63,7 @@ export class CodexAdapter {
     const args = [
       ...(this.#options.baseArgs ?? []),
       "exec",
+      ...(this.#options.execArgs ?? []),
       "--json",
       "--output-schema",
       schemaPath,

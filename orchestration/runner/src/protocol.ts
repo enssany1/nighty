@@ -139,25 +139,18 @@ export function validateReview(
   if (review.decision === "APPROVED" && review.mandatory_criteria_verified !== true) {
     errors.push("APPROVED requires all mandatory criteria verified");
   }
-  if (review.baseline_commit !== undefined) {
-    if (!hasString(review.baseline_commit) || !COMMIT.test(review.baseline_commit)) {
-      errors.push("invalid review baseline commit");
-    }
+  if (!hasString(review.baseline_commit) || !COMMIT.test(review.baseline_commit)) {
+    errors.push("invalid review baseline commit");
   }
-  if (review.head_commit !== undefined) {
-    if (!hasString(review.head_commit) || !COMMIT.test(review.head_commit)) {
-      errors.push("invalid review head commit");
-    }
+  if (!hasString(review.head_commit) || !COMMIT.test(review.head_commit)) {
+    errors.push("invalid review head commit");
   }
-  if (review.source_sha256 !== undefined) {
-    if (!hasString(review.source_sha256) || !SHA256.test(review.source_sha256)) {
-      errors.push("invalid review source digest");
-    }
+  if (!hasString(review.branch)) errors.push("invalid review branch");
+  if (!hasString(review.source_sha256) || !SHA256.test(review.source_sha256)) {
+    errors.push("invalid review source digest");
   }
-  if (review.tree_sha256 !== undefined) {
-    if (!hasString(review.tree_sha256) || !SHA256.test(review.tree_sha256)) {
-      errors.push("invalid review tree digest");
-    }
+  if (!hasString(review.tree_sha256) || !SHA256.test(review.tree_sha256)) {
+    errors.push("invalid review tree digest");
   }
   if (expected !== undefined) {
     if (review.task_id !== expected.taskId) errors.push("task identity mismatch");
