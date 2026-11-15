@@ -31,6 +31,29 @@ The final command exits successfully only when both values are empty in the recr
 
 Terminate TLS at a trusted reverse proxy in front of port 8088. The bundled Nginx proxy sets CSP, frame, content-type, referrer, and permissions headers and limits uploads to 11 MiB. Keep the API and database unpublished as defined by `compose.production.yaml`.
 
+### Deploying below a URL path
+
+Set `VITE_BASE_PATH` before building when Nighty is served below a path such as `/nighty/`. The value must begin and end with `/`:
+
+```powershell
+$env:VITE_BASE_PATH = "/nighty/"
+docker compose -f compose.yaml -f compose.production.yaml up -d --build
+```
+
+The public reverse proxy must strip that prefix before forwarding to Nighty's web port. For Nginx, keep the trailing slash on both the location and `proxy_pass` target so `/nighty/api/...`, `/nighty/assets/...`, and SPA navigation all reach the bundled proxy correctly:
+
+```nginx
+location = /nighty { return 308 https://$host/nighty/; }
+location /nighty/ {
+  proxy_pass http://127.0.0.1:8088/;
+  proxy_set_header Host $host;
+  proxy_set_header X-Forwarded-Proto $scheme;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
+Do not map Nighty to the site's root `/api` path; its API remains namespaced below the configured base path.
+
 ## Health and readiness
 
 - Web liveness: `GET /healthz`

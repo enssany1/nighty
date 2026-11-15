@@ -12,6 +12,8 @@
 
 The owner explicitly authorized Codex to continue independently and unattended until the project is delivered. The exact direct-implementation decision is recorded in `orchestration/status/ACTIVATION_DECISION.md`. The application checkpoints remain direct Codex work and are not relabeled as DeepSeek deliveries or independent runner reviews. Orchestration acceptance is supported separately by deterministic runner evidence and `orchestration/acceptance/LIVE_PROVIDER_EVIDENCE.md`.
 
+Production deployment ruling (15 November 2026): the owner explicitly authorized an external deployment at `https://www.envi.one/nighty/`, with a clean production database, one `admin` user, and a temporary bootstrap password supplied out of source control. The implementation keeps root deployments compatible while making the frontend base path configurable. This record does not claim the external deployment completed; server access and public verification remain mandatory evidence before that state can change.
+
 TASK-001 established and verified:
 
 - Node 24/npm 11 workspaces for the NestJS API, React web app, API client, and test fixtures.
