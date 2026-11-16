@@ -37,9 +37,24 @@ jobs:
       - run: npm run prisma:migrate:deploy -w @nighty/api
       - run: npm run api:generate
       - run: git diff --exit-code
-      - run: npm run check
+      - run: npm run typecheck
+      # Orchestration runner tests are Windows-specific and run in the orchestration job below.
+      - run: npm run test:bootstrap
+      - run: npm run test:packaging
+      - run: npm test --workspaces --if-present
       - run: npm run test:integration -w @nighty/api
       - run: npm run build --workspaces --if-present
       - run: npm audit --omit=dev --audit-level=high
       - run: docker compose -f compose.yaml -f compose.production.yaml config
       - run: docker compose -f compose.yaml -f compose.production.yaml build api web
+
+  orchestration:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run test:orchestration
