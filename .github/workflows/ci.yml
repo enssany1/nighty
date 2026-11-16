@@ -33,6 +33,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - run: npm run prisma:generate -w @nighty/api
       - run: npm run prisma:migrate:deploy -w @nighty/api
       - run: npm run api:generate
       - run: git diff --exit-code
