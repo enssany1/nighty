@@ -2,6 +2,7 @@ import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { Prisma } from "../generated/prisma/client";
 import { PrismaService } from "../database/prisma.service";
 import { validateCoverage } from "../shifts/shift-coverage";
+import { DayRolloverService } from "./day-rollover.service";
 
 const dayInclude = {
   shiftInstances: {
@@ -23,9 +24,13 @@ function response(day: Prisma.OperationalDayGetPayload<{ include: typeof dayIncl
 
 @Injectable()
 export class OperationalDayService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(DayRolloverService) private readonly rollover: DayRolloverService,
+  ) {}
 
   async current() {
+    await this.rollover.rollForwardSafely();
     const active = await this.prisma.operationalDay.findFirst({
       where: { retentionState: { not: "MARKED" }, shiftInstances: { some: { status: "ACTIVE" } } },
       orderBy: { operationalDate: "desc" },

@@ -1363,6 +1363,10 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          "autosave": {
+            "type": "boolean",
+            "description": "Marks a save made automatically while the author is still typing."
           }
         },
         "required": [

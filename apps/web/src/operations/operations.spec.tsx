@@ -32,6 +32,32 @@ describe("daily canvas", () => {
     expect(screen.getByText("First")).toHaveClass("completed");
   });
 
+  it("lands on the server's current operational day and never asks for the browser's calendar date", async () => {
+    const session = { userId: "u1", displayName: "Aisha", role: "ADMIN" as const, csrfToken: "csrf", expiresAt: "2026-11-13T20:00:00Z" };
+    const canvasRequests: string[] = [];
+    const reply = (body: unknown, status = 200) => Promise.resolve(new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } }));
+    vi.spyOn(globalThis, "fetch").mockImplementation((request) => { const url = String(request); if (url.includes("/auth/me")) return reply(session); if (url.includes("/tags") || url.includes("/team")) return reply([]); if (url.includes("/operational-days/current")) return reply({ operationalDate: "2026-11-13" }); if (url.includes("/canvas/")) { canvasRequests.push(url.split("/canvas/")[1]!); return url.endsWith("2026-11-13") ? reply({ operationalDayId: "day", operationalDate: "2026-11-13", shifts: [] }) : reply({ message: "Operational day not found" }, 404); } return reply({}); });
+    render(<AuthProvider><OperationsWorkspace session={session} onSettings={() => undefined} /></AuthProvider>);
+    expect(await screen.findByRole("heading", { name: /November 13, 2026|13 November 2026/ })).toBeInTheDocument();
+    expect(screen.queryByText("No canvas for this day")).not.toBeInTheDocument();
+    expect(new Set(canvasRequests)).toEqual(new Set(["2026-11-13"]));
+  });
+
+  it("recovers from a missing day with Return to current day", async () => {
+    let available = false;
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(available
+      ? new Response(JSON.stringify({ operationalDayId: "day", operationalDate: "2026-11-13", shifts: [] }), { status: 200, headers: { "content-type": "application/json" } })
+      : new Response(JSON.stringify({ message: "Operational day not found" }), { status: 404, headers: { "content-type": "application/json" } })));
+    const onCurrentDay = vi.fn();
+    render(<DailyCanvas date="2026-11-13" onCurrentDay={onCurrentDay} />);
+    const button = await screen.findByRole("button", { name: "Return to current day" });
+    available = true;
+    fireEvent.click(button);
+    expect(onCurrentDay).toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByText("No canvas for this day")).not.toBeInTheDocument());
+    expect(screen.getByText(/Handover when ready/)).toBeInTheDocument();
+  });
+
   it("collapses, restores, and reopens the left menu preference", async () => {
     const session = { userId: "u1", displayName: "Aisha", role: "ADMIN" as const, csrfToken: "csrf", expiresAt: "2026-11-13T20:00:00Z" };
     vi.spyOn(globalThis, "fetch").mockImplementation((request) => { const url=String(request); if(url.includes("/auth/me")) return Promise.resolve(new Response(JSON.stringify(session),{status:200,headers:{"content-type":"application/json"}})); if(url.includes("/tags") || url.includes("/team") || url.includes("/shifts")) return Promise.resolve(new Response("[]",{status:200,headers:{"content-type":"application/json"}})); if(url.includes("/profile")) return Promise.resolve(new Response(JSON.stringify({id:"u1",username:"aisha",displayName:"Aisha",role:"ADMIN",shiftIds:[]}),{status:200,headers:{"content-type":"application/json"}})); if(url.includes("/operational-days/current")) return Promise.resolve(new Response(JSON.stringify({operationalDate:"2026-11-13"}),{status:200,headers:{"content-type":"application/json"}})); return Promise.resolve(new Response(JSON.stringify({operationalDayId:"day",operationalDate:"2026-11-13",shifts:[]}),{status:200,headers:{"content-type":"application/json"}})); });

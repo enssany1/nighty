@@ -30,7 +30,9 @@ This is a shared public test instance. Anything you enter is visible to other te
 
 - **Daily handover canvas** – one page per operational day, grouped by shift, with rich-text entries and full revision history.
 - **Three entry types** – Update, To-do list and Follow. Follow items transfer to the next shift exactly once at handover.
-- **Manual handover** – the outgoing shift decides when to hand over; it is never forced by the clock.
+- **Manual handover** – the outgoing shift decides when to hand over to the next shift; it is never forced by the clock.
+- **Automatic new day** – when the date changes, today's operational day opens on the shift scheduled for the current time and open Follow items carry over.
+- **Autosave** – entries are saved and shown on the board as you type; there is no Submit button.
 - **Flexible schedules** – shifts may overlap, but the active schedule must cover all 24 hours with no gap.
 - **Tag whiteboards** – shared reference boards (for example `#issues`, `#maintenance`) with pasted images and file attachments.
 - **Search** across entries and whiteboards (`Ctrl K`).
@@ -71,8 +73,8 @@ Development seed users are `aisha`, `marcus`, `daniel`, and `ethan`; their local
 
 ## Product behavior
 
-- Update, To-do list, and Follow are the only canvas actions.
-- Handover is manual and is never locked to the scheduled clock time.
+- Update, To-do list, and Follow are the only canvas actions. They save automatically while you type; press Enter twice to start the next entry.
+- Handover between shifts is manual and is never locked to the scheduled clock time. A new operational day opens automatically when the date changes in the configured time zone (set `DAY_ROLLOVER=manual` to turn this off).
 - Follow actions transfer exactly once to the next shift.
 - Shifts may overlap, but the active schedule must cover all 24 hours without an uncovered gap.
 - Secure server-side sessions use HTTP-only cookies and expire after 30 inactive minutes.

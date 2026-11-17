@@ -1,6 +1,7 @@
 import { ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma, type FollowStatus, type UserRole } from "../generated/prisma/client";
 import { PrismaService } from "../database/prisma.service";
+import { isRetryableSerializationError, transitionShift } from "./shift-transition";
 
 export function nextOperationalDate(date: Date): Date {
   const next = new Date(date);
@@ -9,18 +10,6 @@ export function nextOperationalDate(date: Date): Date {
 }
 
 const shiftWithAccess = { assignmentSnapshots: true, operationalDay: true } as const;
-
-function containsSerializationConflict(value: unknown, seen = new Set<unknown>()): boolean {
-  if (value === "40001" || value === "TransactionWriteConflict") return true;
-  if (!value || typeof value !== "object" || seen.has(value)) return false;
-  seen.add(value);
-  return Object.values(value as Record<string, unknown>).some((item) => containsSerializationConflict(item, seen));
-}
-
-function isRetryableSerializationError(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientKnownRequestError &&
-    (error.code === "P2034" || (error.code === "P2010" && containsSerializationConflict(error.meta)));
-}
 
 @Injectable()
 export class HandoverService {
@@ -58,40 +47,14 @@ export class HandoverService {
     if (current.status !== "ACTIVE") throw new ConflictException("Only the active shift can be handed over");
     if (next.status !== "UPCOMING") throw new ConflictException("The next shift is not available");
 
-    const now = new Date();
-    await tx.shiftInstance.update({
-      where: { id: current.id },
-      data: { status: "CLOSED", closedAt: now, version: { increment: 1 } },
-    });
-    await tx.shiftInstance.update({
-      where: { id: next.id },
-      data: { status: "ACTIVE", openedAt: now, closedAt: null, version: { increment: 1 } },
-    });
-    const ownOpenFollows = await tx.entry.findMany({
-      where: { shiftInstanceId: current.id, type: "FOLLOW", followStatus: "OPEN" },
-      select: { id: true },
-    });
-    const incomingOpenFollows = await tx.followTransfer.findMany({
-      where: { toShiftInstanceId: current.id, status: "OPEN", sourceEntry: { followStatus: "OPEN" } },
-      select: { sourceEntryId: true },
-    });
-    const openFollowIds = [...new Set([
-      ...ownOpenFollows.map((entry) => entry.id),
-      ...incomingOpenFollows.map((transfer) => transfer.sourceEntryId),
-    ])];
-    if (openFollowIds.length) {
-      await tx.followTransfer.createMany({
-        data: openFollowIds.map((sourceEntryId) => ({ sourceEntryId, fromShiftInstanceId: current.id, toShiftInstanceId: next.id })),
-        skipDuplicates: true,
-      });
-    }
+    const transferredFollowCount = await transitionShift(tx, current.id, next.id, new Date());
     await tx.auditEvent.create({
       data: {
         actorUserId: userId, action: "SHIFT_HANDOVER", entityType: "ShiftInstance", entityId: current.id,
-        before: { status: "ACTIVE" }, after: { status: "CLOSED", openedShiftId: next.id, transferredFollowCount: openFollowIds.length },
+        before: { status: "ACTIVE" }, after: { status: "CLOSED", openedShiftId: next.id, transferredFollowCount },
       },
     });
-    return { closedShiftId: current.id, openedShiftId: next.id, transferredFollowCount: openFollowIds.length, alreadyCompleted: false };
+    return { closedShiftId: current.id, openedShiftId: next.id, transferredFollowCount, alreadyCompleted: false };
   }
 
   private async resolveSuccessor(tx: Prisma.TransactionClient, current: { id: string; operationalDayId: string; positionSnapshot: number; operationalDay: { operationalDate: Date } }) {

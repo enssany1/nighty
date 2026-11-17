@@ -26,6 +26,7 @@ services:
       API_PORT: 3000
       DATABASE_URL: postgresql://${POSTGRES_USER:-nighty}:${POSTGRES_PASSWORD:-nighty_dev}@postgres:5432/${POSTGRES_DB:-nighty}?schema=public
       ATTACHMENTS_PATH: /data/attachments
+      DAY_ROLLOVER: ${DAY_ROLLOVER:-automatic}
       BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-}
       BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
       BOOTSTRAP_ADMIN_DISPLAY_NAME: ${BOOTSTRAP_ADMIN_DISPLAY_NAME:-Nighty Administrator}

@@ -54,6 +54,10 @@ location /nighty/ {
 
 Do not map Nighty to the site's root `/api` path; its API remains namespaced below the configured base path.
 
+## Operational day rollover
+
+A new operational day opens automatically when the date changes in the application time zone (General settings). Check that time zone after the first login, because it decides when the day changes and which shift opens. Handover between shifts of the same day stays manual. To require Handover for the day change as well, start the API with `DAY_ROLLOVER=manual`.
+
 ## Health and readiness
 
 - Web liveness: `GET /healthz`
@@ -100,6 +104,7 @@ Migrations are additive and run automatically. Never edit or delete a named volu
 - API not ready: inspect `docker compose logs api postgres`; readiness fails closed when PostgreSQL cannot be queried.
 - Upload failure: confirm the attachment volume is mounted and has free space; the runtime prepares `/data/attachments` for the unprivileged API process.
 - Retention partial failure: the operational day remains in `FAILED` retention state. Correct storage access, preview again, and rerun; missing files are idempotent success.
+- Day did not change: confirm the application time zone, that `DAY_ROLLOVER` is not `manual`, and look for `Automatic day rollover failed` in `docker compose logs api`.
 - Schedule save rejected: overlap is allowed. Inspect the reported uncovered gap and keep active shifts covering every minute of the 24-hour cycle.
 
 ## Release checklist

@@ -131,6 +131,7 @@ export class CreateEntryRequestDto {
   @ApiProperty({ type: String }) @IsString() @MinLength(1) plainText!: string;
   @ApiPropertyOptional({ type: [TodoItemDto] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => TodoItemDto) todoItems?: TodoItemDto[];
   @ApiPropertyOptional({ type: [String], format: "uuid" }) @IsOptional() @IsArray() @IsUUID("4", { each: true }) tagIds?: string[];
+  @ApiPropertyOptional({ type: Boolean, description: "Marks a save made automatically while the author is still typing." }) @IsOptional() @IsBoolean() autosave?: boolean;
 }
 
 export class ToggleTodoRequestDto {

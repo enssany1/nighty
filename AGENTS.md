@@ -14,7 +14,8 @@
 - React + TypeScript + Tiptap frontend; NestJS + TypeScript backend; PostgreSQL through Prisma.
 - Secure opaque server sessions in HTTP-only cookies, CSRF defense, and 30-minute inactivity expiry.
 - Shifts may overlap; their combined active schedule must cover 24 hours without gaps.
-- Manual Handover—not wall-clock time—selects the only writable shift instance.
+- Manual Handover selects the only writable shift instance within an operational day. A new operational day opens automatically once the configured time zone passes the first shift's start (owner ruling, 17 November 2026: `docs/approved/OWNER_RULINGS_2026-11-17.md`); `DAY_ROLLOVER=manual` restores Handover-only behavior.
+- Entries save automatically while they are typed; the composer has no Submit button.
 - Supported entry actions are Update, To-do list, and Follow only.
 - Follow transfers exactly once during Handover.
 - Use modern sans-serif typography everywhere; serif fonts are prohibited.

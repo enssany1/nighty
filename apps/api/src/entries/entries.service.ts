@@ -13,6 +13,9 @@ export function normalizeTodoItems(items: TodoItemDto[] | undefined) {
   return normalized;
 }
 
+/** Autosaves by the same person within this window count as one continuous edit. */
+export const AUTOSAVE_WINDOW_MS = 2 * 60_000;
+
 const entryInclude = { todoItems: { orderBy: { position: "asc" as const } }, author: { select: { id: true, displayName: true } } } as const;
 
 async function assertWritable(tx: Prisma.TransactionClient, shiftInstanceId: string, userId: string, role: UserRole) {
@@ -64,11 +67,15 @@ export class EntriesService {
       const current = await tx.entry.findUnique({ where: { id: entryId }, include: { todoItems: true } });
       if (!current) throw new NotFoundException("Entry not found");
       await assertWritable(tx, current.shiftInstanceId, userId, role);
-      const latest = await tx.entryRevision.aggregate({ where: { entryId }, _max: { revisionNumber: true } });
-      await tx.entryRevision.create({ data: {
-        entryId, revisionNumber: (latest._max.revisionNumber ?? 0) + 1,
-        editorDocument: current.editorDocument as Prisma.InputJsonValue, plainText: current.plainText, editedById: userId,
-      } });
+      const latest = await tx.entryRevision.findFirst({ where: { entryId }, orderBy: { revisionNumber: "desc" }, select: { revisionNumber: true, editedById: true } });
+      const lastWriterId = latest?.editedById ?? current.authorId;
+      const continuing = input.autosave === true && lastWriterId === userId && Date.now() - current.updatedAt.getTime() < AUTOSAVE_WINDOW_MS;
+      if (!continuing) {
+        await tx.entryRevision.create({ data: {
+          entryId, revisionNumber: (latest?.revisionNumber ?? 0) + 1,
+          editorDocument: current.editorDocument as Prisma.InputJsonValue, plainText: current.plainText, editedById: userId,
+        } });
+      }
       await tx.todoItem.deleteMany({ where: { entryId } });
       const updated = await tx.entry.update({
         where: { id: entryId },
@@ -79,7 +86,7 @@ export class EntriesService {
         },
         include: entryInclude,
       });
-      await tx.auditEvent.create({ data: { actorUserId: userId, action: "ENTRY_EDITED", entityType: "Entry", entityId: entryId, before: { type: current.type, plainText: current.plainText }, after: { type: updated.type, plainText: updated.plainText } } });
+      if (!continuing) await tx.auditEvent.create({ data: { actorUserId: userId, action: "ENTRY_EDITED", entityType: "Entry", entityId: entryId, before: { type: current.type, plainText: current.plainText }, after: { type: updated.type, plainText: updated.plainText } } });
       return updated;
     });
   }

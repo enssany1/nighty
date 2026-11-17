@@ -35,6 +35,7 @@ export interface components {
       "plainText": string;
       "todoItems"?: Array<components["schemas"]["TodoItemDto"]>;
       "tagIds"?: Array<string>;
+      "autosave"?: boolean;
     };
     "CreateTagPostRequestDto": {
       "editorDocument": Record<string, unknown>;
