@@ -18,7 +18,25 @@ describe("daily canvas", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ operationalDayId: "day", operationalDate: "2026-11-13", shifts: [{ id: "closed", definitionId: "d1", name: "Morning", startMinute: 420, endMinute: 900, position: 1, status: "CLOSED", writable: false, entries: [], incomingFollows: [] }, { id: "active", definitionId: "d2", name: "Evening", startMinute: 900, endMinute: 1380, position: 2, status: "ACTIVE", writable: true, entries: [], incomingFollows: [] }, { id: "upcoming", definitionId: "d3", name: "Night", startMinute: 1380, endMinute: 420, position: 3, status: "UPCOMING", writable: false, entries: [], incomingFollows: [] }] }), { status: 200, headers: { "content-type": "application/json" } }));
     render(<DailyCanvas date="2026-11-13" onCurrentDay={() => undefined} />);
     expect(await screen.findByRole("heading", { name: /Friday, November 13, 2026|Friday, 13 November 2026/ })).toBeInTheDocument();
-    expect(screen.getByText("Current shift")).toBeInTheDocument(); expect(screen.getByText("Previous shift")).toBeInTheDocument(); expect(screen.getByText("Upcoming shift")).toBeInTheDocument(); expect(screen.getByRole("button", { name: /Handover/ })).toBeInTheDocument();
+    expect(screen.getByText("Current shift")).toBeInTheDocument(); expect(screen.getByText(/^Previous shift/)).toBeInTheDocument(); expect(screen.getByText(/^Upcoming shift/)).toBeInTheDocument(); expect(screen.getByRole("button", { name: /Handover/ })).toBeInTheDocument();
+  });
+
+  it("keeps only the current shift open and expands other shifts on request", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ operationalDayId: "day", operationalDate: "2026-11-13", shifts: [
+      { id: "closed", definitionId: "d1", name: "Morning", startMinute: 420, endMinute: 900, position: 1, status: "CLOSED", writable: false, entries: [{ id: "old", type: "UPDATE", editorDocument: { type: "doc", content: [] }, plainText: "Morning note", createdAt: "2026-11-13T08:00:00Z", updatedAt: "2026-11-13T08:00:00Z", author: { id: "u1", displayName: "Aisha" }, todoItems: [] }], incomingFollows: [] },
+      { id: "active", definitionId: "d2", name: "Evening", startMinute: 900, endMinute: 1380, position: 2, status: "ACTIVE", writable: true, entries: [], incomingFollows: [] },
+      { id: "upcoming", definitionId: "d3", name: "Night", startMinute: 1380, endMinute: 420, position: 3, status: "UPCOMING", writable: false, entries: [], incomingFollows: [] },
+    ] }), { status: 200, headers: { "content-type": "application/json" } }));
+    render(<DailyCanvas date="2026-11-13" onCurrentDay={() => undefined} />);
+    expect(await screen.findByText(/Previous shift · 1 entry · show/)).toBeInTheDocument();
+    expect(screen.queryByText("Morning note")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Read-only until Handover/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Write an update")).toBeInTheDocument();
+    const morning = screen.getByText(/Previous shift · 1 entry/).closest("header")!;
+    expect(morning).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(morning);
+    expect(await screen.findByText("Morning note")).toBeInTheDocument();
+    expect(morning).toHaveAttribute("aria-expanded", "true");
   });
 
   it("keeps a completed incoming Follow visible with completion evidence and compact entry metadata", async () => {

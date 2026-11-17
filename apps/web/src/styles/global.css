@@ -112,7 +112,18 @@ kbd { border:1px solid #d5dbd5; border-radius:4px; padding:1px 5px; color:#78817
 .status-pill.active { color:#165f36; background:#def2e4; }
 .status-pill.closed { color:#69726c; background:#eceeeb; }
 .status-pill.upcoming { color:#725b20; background:#f8edca; }
-.shift-content { max-height:680px; overflow:auto; padding:4px 22px 22px 18px; }
+.shift-content { padding:4px 22px 22px 18px; }
+.shift-section:not(.active) .shift-content { max-height:680px; overflow:auto; }
+.shift-section>header { cursor:pointer; user-select:none; }
+.shift-section>header:hover .shift-caret { color:var(--ink); }
+.shift-section>header .status-pill { margin-left:auto; }
+.shift-caret { flex:0 0 auto; margin-left:-4px; color:#9aa39d; transition:transform .15s ease; }
+.shift-section.collapsed .shift-caret { transform:rotate(-90deg); }
+.shift-section.collapsed>header { min-height:54px; padding-top:9px; padding-bottom:9px; }
+.shift-section.collapsed .shift-title h2 { font-size:1rem; }
+.shift-section.collapsed .shift-title>svg { font-size:1.2rem; }
+.shift-section.active .composer-body { min-height:min(52vh,520px); }
+.shift-section.active .tiptap-editor { min-height:min(46vh,460px); }
 .no-entries,.read-only-note { margin:8px 0 18px; color:var(--muted); font-size:.86rem; }
 .read-only-note { display:flex; align-items:center; gap:7px; padding:10px 12px; border-radius:7px; background:#f1f2ef; }
 .entry-row { display:grid; grid-template-columns:56px 104px minmax(0,1fr); gap:12px; padding:10px 8px; border-radius:7px; }

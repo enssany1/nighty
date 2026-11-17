@@ -36,3 +36,8 @@ These rulings were given by the product owner after using the public deployment.
 - Formatting commands: `/h1`, `/h2`, `/h3`, `/bullet`, `/num`, `/quote`, `/code`, `/divider`. Insert commands: `/now` (current time) and `/today` (today's date). They change the text, not the kind of entry.
 - Selecting text shows a toolbar with bold, italic, underline, strikethrough and seven Notion-style colours for text and for background. The API accepts only those colours.
 - The composer is part of the canvas: the entry being typed sits in the same columns as the saved entries, with its type and time on the left, on the same background, instead of in a separate white box.
+
+## 4. A free composer and a large current shift
+
+- The empty composer shows no action. The label appears only after the author picks an action with `/` or starts writing (plain writing is an Update).
+- On a day with an active shift, previous and upcoming shifts start collapsed to a single line with their entry count; clicking the header expands or collapses them. The current shift stays open with a large writing area. On a past day with no active shift, every shift starts open.
