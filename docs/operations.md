@@ -90,6 +90,15 @@ After restoration, verify `/api/health/ready`, sign in, open a known operational
 
 ## Updates
 
+On a Linux server, `scripts/update-server.sh` performs the steps below in one go: it finds the running Compose project, dumps the database to `~/nighty-backups`, downloads the latest `main`, and rebuilds with the same Compose files, database settings and base path.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/enssany1/nighty/main/scripts/update-server.sh | bash
+```
+
+The manual steps are:
+
+
 1. Take and verify a backup.
 2. Review release notes and environment changes.
 3. Run `docker compose -f compose.yaml -f compose.production.yaml build`.
