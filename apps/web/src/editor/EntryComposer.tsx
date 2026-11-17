@@ -11,8 +11,8 @@ const actions: Array<{ type: EntryType; label: string; icon: typeof TextT; help:
   { type: "FOLLOW", label: "Follow", icon: ArrowRight, help: "Transfer automatically at Handover" },
 ];
 const keyFor = (date: string, shiftId: string) => `nighty:draft:${date}:${shiftId}`;
-/** Pause in typing after which the entry is saved automatically. */
-export const AUTOSAVE_DELAY_MS = 800;
+/** Typing is saved at most this long after the first unsaved keystroke, even while the author keeps typing. */
+export const AUTOSAVE_DELAY_MS = 600;
 type TodoDraft = { id: string; text: string };
 type StoredDraft = { html?: string; type?: EntryType; todos?: string[]; entryId?: string | null };
 type SaveState = "idle" | "saving" | "saved" | "empty" | "closed" | "error";
@@ -67,6 +67,7 @@ export function EntryComposer({ shiftId, operationalDate, onSaved, onHandover }:
       attributes: { class: "tiptap-editor", "aria-label": "Write an update" },
       handlePaste: (_view, event) => { const pasted = [...(event.clipboardData?.files ?? [])].filter((file) => file.type.startsWith("image/")); if (!pasted.length) return false; setImages((current) => [...current, ...pasted]); callbacks.current.changed(); return true; },
       handleKeyDown: (view, event) => {
+        if (event.key === "Escape") { setMenu(false); setMentionMenu(false); return false; }
         if (event.key !== "Enter" || event.shiftKey) return false;
         if (event.ctrlKey || event.metaKey) { void callbacks.current.finish(); return true; }
         const { $from, empty } = view.state.selection; const document = view.state.doc;
@@ -117,7 +118,7 @@ export function EntryComposer({ shiftId, operationalDate, onSaved, onHandover }:
   /** Saves everything typed so far; saves never overlap and the latest text always wins. */
   const flush = useCallback(async () => {
     if (timer.current) { clearTimeout(timer.current); timer.current = null; }
-    if (saving.current) { await saving.current; }
+    if (saving.current) { await saving.current; if (!dirty.current) return; }
     if (!dirty.current) return;
     const run = (async () => { while (dirty.current) { dirty.current = false; await saveOnce(); } })().finally(() => { saving.current = null; });
     saving.current = run;
@@ -126,7 +127,8 @@ export function EntryComposer({ shiftId, operationalDate, onSaved, onHandover }:
 
   const changed = useCallback(() => {
     dirty.current = true; remember();
-    if (timer.current) clearTimeout(timer.current);
+    // Not reset on every keystroke: the board keeps up while someone types without pausing.
+    if (timer.current) return;
     timer.current = setTimeout(() => { timer.current = null; void flush(); }, AUTOSAVE_DELAY_MS);
   }, [flush, remember]);
 
@@ -153,8 +155,23 @@ export function EntryComposer({ shiftId, operationalDate, onSaved, onHandover }:
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; void flush(); }; }, [flush]);
 
   function updateTodos(next: (current: TodoDraft[]) => TodoDraft[]) { setTodos((current) => { const value = next(current); latest.current = { ...latest.current, todos: value }; return value; }); changed(); }
-  function choose(next: EntryType) { setType(next); latest.current = { ...latest.current, type: next }; setMenu(false); if (editor?.getText().trim() === "/") editor.commands.clearContent(); if (next !== "TODO") editor?.commands.focus(); changed(); }
-  function mention(displayName: string) { editor?.chain().focus().insertContent(`${displayName} `).run(); setMentionMenu(false); }
+  function choose(next: EntryType) {
+    setType(next); latest.current = { ...latest.current, type: next }; setMenu(false);
+    if (editor) {
+      // Remove the "/" that opened the menu, wherever it was typed.
+      const { from } = editor.state.selection; const before = editor.state.doc.textBetween(Math.max(0, from - 1), from);
+      if (before === "/") editor.chain().deleteRange({ from: from - 1, to: from }).run();
+      snapshot.current = { html: editor.getHTML(), text: editor.getText(), json: editor.getJSON() as EditorNode };
+    }
+    if (next === "TODO") setTimeout(() => (document.querySelector("[data-todo-id]") as HTMLInputElement | null)?.focus());
+    else setTimeout(() => editor?.commands.focus("end"));
+    changed();
+  }
+  function mention(displayName: string) {
+    if (!editor) return;
+    const { from } = editor.state.selection; const before = editor.state.doc.textBetween(Math.max(0, from - 1), from);
+    editor.chain().focus().deleteRange({ from: before === "@" ? from - 1 : from, to: from }).insertContent(`@${displayName} `).run(); setMentionMenu(false);
+  }
   function removeTodo(id: string) { updateTodos((current) => current.length === 1 ? [newTodoDraft()] : current.filter((item) => item.id !== id)); emptyEnterRow.current = null; }
   function todoKey(id: string, key: string) {
     const index = todos.findIndex((item) => item.id === id);
@@ -179,5 +196,5 @@ export function EntryComposer({ shiftId, operationalDate, onSaved, onHandover }:
   async function handover() { dirty.current = true; await flush(); onHandover(); }
   function attach(kind: "image" | "file", added: File[]) { if (kind === "image") setImages((current) => { const value = [...current, ...added]; latest.current = { ...latest.current, images: value }; return value; }); else setFiles((current) => { const value = [...current, ...added]; latest.current = { ...latest.current, files: value }; return value; }); changed(); }
 
-  return <section className="entry-composer" aria-label="Shift update composer"><div className="composer-body">{type === "TODO" ? <div className="todo-editor"><header><strong>To-do list</strong><button type="button" className="icon-button small" onClick={() => void closeTodoBlock()} aria-label="Close to-do list"><X /></button></header>{todos.map((item, index) => <div className="todo-editor-row" key={item.id}><input type="checkbox" disabled aria-label={`To-do item ${index + 1}`} /><input aria-label={`To-do text ${index + 1}`} data-todo-id={item.id} value={item.text} onChange={(event) => { emptyEnterRow.current = null; const text = event.target.value; updateTodos((current) => current.map((currentItem) => currentItem.id === item.id ? { ...currentItem, text } : currentItem)); }} onKeyDown={(event) => { if (event.key === "Enter" || (event.key === "Backspace" && !event.currentTarget.value)) { event.preventDefault(); todoKey(item.id, event.key); } }} onBlur={() => void flush()} placeholder={index === 0 ? "Add a to-do and press Enter" : "Another to-do"} /><button type="button" className="icon-button small remove-todo" onClick={() => removeTodo(item.id)} aria-label={`Remove to-do ${index + 1}`}><X /></button></div>)}</div> : <EditorContent editor={editor} />}{menu && <div className="slash-menu" role="menu" aria-label="Insert action">{actions.map((action) => <button key={action.type} role="menuitem" onClick={() => choose(action.type)}><action.icon /><span><strong>{action.label}</strong><small>{action.help}</small></span></button>)}</div>}{mentionMenu && team.length > 0 && <div className="slash-menu mention-menu" role="menu" aria-label="Mention teammate">{team.map((member) => <button key={member.id} role="menuitem" onClick={() => mention(member.displayName)}><span><strong>@{member.displayName}</strong></span></button>)}</div>}{images.length > 0 && <div className="image-previews">{images.map((file, index) => <figure key={`${file.name}-${index}`}><img src={URL.createObjectURL(file)} alt={file.name} /><figcaption>{file.name}</figcaption></figure>)}</div>}{files.length > 0 && <ul className="pending-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><Paperclip /> {file.name}</li>)}</ul>}</div><footer><div className="composer-tools"><button className="icon-button" onClick={() => fileInput.current?.click()} aria-label="Attach file"><Paperclip /></button><button className="icon-button" onClick={() => imageInput.current?.click()} aria-label="Add image"><Image /></button><input ref={fileInput} hidden type="file" onChange={(event) => attach("file", Array.from(event.target.files ?? []))} /><input ref={imageInput} hidden type="file" accept="image/*" onChange={(event) => attach("image", Array.from(event.target.files ?? []))} /></div><div className="composer-actions"><span role="status" className={`save-state ${saveState}`}>{(images.length > 0 || files.length > 0) && saveState === "idle" ? "Add text to save the attachment" : statusText[saveState]}</span><button className="primary-button handover-button" onClick={() => void handover()}><ArrowRight /> Handover</button></div></footer></section>;
+  return <section className="entry-composer" aria-label="Shift update composer"><div className="composer-body">{type === "TODO" ? <div className="todo-editor"><header><strong>To-do list</strong><button type="button" className="icon-button small" onClick={() => void closeTodoBlock()} aria-label="Close to-do list"><X /></button></header>{todos.map((item, index) => <div className="todo-editor-row" key={item.id}><input type="checkbox" disabled aria-label={`To-do item ${index + 1}`} /><input aria-label={`To-do text ${index + 1}`} data-todo-id={item.id} value={item.text} onChange={(event) => { emptyEnterRow.current = null; const text = event.target.value; updateTodos((current) => current.map((currentItem) => currentItem.id === item.id ? { ...currentItem, text } : currentItem)); }} onKeyDown={(event) => { if (event.key === "Enter" || (event.key === "Backspace" && !event.currentTarget.value)) { event.preventDefault(); todoKey(item.id, event.key); } }} onBlur={() => void flush()} placeholder={index === 0 ? "Add a to-do and press Enter" : "Another to-do"} /><button type="button" className="icon-button small remove-todo" onClick={() => removeTodo(item.id)} aria-label={`Remove to-do ${index + 1}`}><X /></button></div>)}</div> : <EditorContent editor={editor} />}{menu && <div className="slash-menu" role="menu" aria-label="Insert action">{actions.map((action) => <button key={action.type} role="menuitem" onMouseDown={(event) => event.preventDefault()} onClick={() => choose(action.type)}><action.icon /><span><strong>{action.label}</strong><small>{action.help}</small></span></button>)}</div>}{mentionMenu && team.length > 0 && <div className="slash-menu mention-menu" role="menu" aria-label="Mention teammate">{team.map((member) => <button key={member.id} role="menuitem" onMouseDown={(event) => event.preventDefault()} onClick={() => mention(member.displayName)}><span><strong>@{member.displayName}</strong></span></button>)}</div>}{images.length > 0 && <div className="image-previews">{images.map((file, index) => <figure key={`${file.name}-${index}`}><img src={URL.createObjectURL(file)} alt={file.name} /><figcaption>{file.name}</figcaption></figure>)}</div>}{files.length > 0 && <ul className="pending-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><Paperclip /> {file.name}</li>)}</ul>}</div><footer><div className="composer-tools"><button className="icon-button" onClick={() => fileInput.current?.click()} aria-label="Attach file"><Paperclip /></button><button className="icon-button" onClick={() => imageInput.current?.click()} aria-label="Add image"><Image /></button><input ref={fileInput} hidden type="file" onChange={(event) => attach("file", Array.from(event.target.files ?? []))} /><input ref={imageInput} hidden type="file" accept="image/*" onChange={(event) => attach("image", Array.from(event.target.files ?? []))} /></div><div className="composer-actions"><span role="status" className={`save-state ${saveState}`}>{(images.length > 0 || files.length > 0) && saveState === "idle" ? "Add text to save the attachment" : statusText[saveState]}</span><button className="primary-button handover-button" onClick={() => void handover()}><ArrowRight /> Handover</button></div></footer></section>;
 }
