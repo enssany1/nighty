@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EntryView } from "../operations/EntryView";
-import { EntryComposer } from "./EntryComposer";
+import { EntryComposer, matchingActions } from "./EntryComposer";
 
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear(); });
 
@@ -26,6 +26,17 @@ describe("approved editor actions", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("[]", { status: 200, headers: { "content-type": "application/json" } }));
     const { container } = render(<EntryComposer shiftId="shift" operationalDate="2026-11-13" onSaved={() => undefined} onHandover={() => undefined} />);
     expect(container.querySelector(".composer-tools .action-badge")).not.toBeInTheDocument();
+  });
+
+  it("matches typed slash commands to actions", () => {
+    const names = (query: string) => matchingActions(query).map((action) => action.type);
+    expect(names("follow")).toEqual(["FOLLOW"]);
+    expect(names("fol")).toEqual(["FOLLOW"]);
+    expect(names("update")).toEqual(["UPDATE"]);
+    expect(names("to-do-list")).toEqual(["TODO"]);
+    expect(names("todo")).toEqual(["TODO"]);
+    expect(names("")).toEqual(["UPDATE", "TODO", "FOLLOW"]);
+    expect(names("folder")).toEqual([]);
   });
 
   it("has no Submit button and saves automatically instead", () => {
@@ -54,10 +65,12 @@ describe("approved editor actions", () => {
     expect(screen.getByPlaceholderText("Another to-do")).toBeInTheDocument();
     expect(second).toHaveFocus();
     fireEvent.keyDown(second, { key: "Enter" });
-    await waitFor(() => expect(onSaved).toHaveBeenLastCalledWith(null), slow);
+    // The composer is ready for the next entry at once; the finished list is saved in the background.
+    await waitFor(() => expect(screen.getByLabelText("Write an update")).toBeInTheDocument(), slow);
+    await waitFor(() => expect(saves).toHaveLength(1), slow);
     expect(saves[0]).toMatchObject({ method: "POST", body: { type: "TODO", plainText: "Call manager", todoItems: [{ text: "Call manager", position: 1 }] } });
     expect(saves[0]!.url).toContain("/shift-instances/shift/entries");
-    expect(onSaved).toHaveBeenCalledWith("entry-1");
+    await waitFor(() => expect(onSaved).toHaveBeenLastCalledWith(null), slow);
     expect(screen.queryByDisplayValue("Call manager")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Write an update")).toBeInTheDocument();
     expect(localStorage.getItem("nighty:draft:2026-11-13:shift")).toBeNull();

@@ -149,7 +149,8 @@ kbd { border:1px solid #d5dbd5; border-radius:4px; padding:1px 5px; color:#78817
 .tiptap-editor p.is-editor-empty:first-child::before { float:left; height:0; color:#96a099; pointer-events:none; content:"Write an update… Use @ to mention, / for actions"; }
 .slash-menu { position:absolute; z-index:4; left:18px; bottom:15px; width:250px; overflow:hidden; border:1px solid var(--line); border-radius:10px; padding:6px; background:white; box-shadow:0 16px 40px rgba(20,36,25,.16); }
 .slash-menu button { width:100%; display:flex; gap:10px; border:0; border-radius:7px; padding:9px; background:transparent; cursor:pointer; text-align:left; }
-.slash-menu button:hover { background:#f1f4ef; }
+.slash-menu button:hover,.slash-menu button.highlighted { background:#f1f4ef; }
+.slash-menu .slash-hint { display:block; padding:6px 9px 2px; color:var(--muted); font-size:.68rem; }
 .slash-menu svg { margin-top:3px; }
 .slash-menu span,.slash-menu strong,.slash-menu small { display:block; }
 .slash-menu small { margin-top:2px; color:var(--muted); }
