@@ -1,15 +1,41 @@
-import { ArrowRight, CheckSquare, Image, Paperclip, TextT, X } from "@phosphor-icons/react";
+import { ArrowRight, CalendarBlank, CheckSquare, Clock, Code, Image, ListBullets, ListNumbers, Minus, Paperclip, Quotes, TextHOne, TextHThree, TextHTwo, TextT, X } from "@phosphor-icons/react";
 import StarterKit from "@tiptap/starter-kit";
+import { BackgroundColor, Color, TextStyle } from "@tiptap/extension-text-style";
+import { Placeholder } from "@tiptap/extensions";
+import type { Editor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, api, jsonBody } from "../api/client";
 import type { Entry, EntryType, TodoItem } from "../operations/types";
+import { SelectionToolbar } from "./SelectionToolbar";
+import { BACKGROUND_COLORS, TEXT_COLORS } from "./palette";
 
 const actions: Array<{ type: EntryType; label: string; icon: typeof TextT; help: string; words: string[] }> = [
   { type: "UPDATE", label: "Update", icon: TextT, help: "Record progress or context", words: ["update", "note"] },
   { type: "TODO", label: "To-do list", icon: CheckSquare, help: "Add checkbox actions", words: ["todo", "to-do", "todolist", "to-do-list", "todo-list", "checklist", "list", "task", "tasks"] },
   { type: "FOLLOW", label: "Follow", icon: ArrowRight, help: "Transfer automatically at Handover", words: ["follow", "followup", "follow-up", "follow up"] },
 ];
+const pad = (value: number) => String(value).padStart(2, "0");
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** Formatting and insert commands; they change the text, not the kind of entry. */
+const formats: Array<{ id: string; label: string; icon: typeof TextT; help: string; words: string[]; run(editor: Editor): void }> = [
+  { id: "h1", label: "Heading 1", icon: TextHOne, help: "Large section heading", words: ["h1", "heading1", "heading", "title"], run: (editor) => { editor.chain().focus().setHeading({ level: 1 }).run(); } },
+  { id: "h2", label: "Heading 2", icon: TextHTwo, help: "Medium section heading", words: ["h2", "heading2", "heading"], run: (editor) => { editor.chain().focus().setHeading({ level: 2 }).run(); } },
+  { id: "h3", label: "Heading 3", icon: TextHThree, help: "Small section heading", words: ["h3", "heading3", "heading"], run: (editor) => { editor.chain().focus().setHeading({ level: 3 }).run(); } },
+  { id: "bullet", label: "Bulleted list", icon: ListBullets, help: "A simple list of points", words: ["bullet", "bulleted", "bullets", "list", "ul"], run: (editor) => { editor.chain().focus().toggleBulletList().run(); } },
+  { id: "num", label: "Numbered list", icon: ListNumbers, help: "Steps in order", words: ["num", "numbered", "number", "ol", "steps"], run: (editor) => { editor.chain().focus().toggleOrderedList().run(); } },
+  { id: "quote", label: "Quote", icon: Quotes, help: "Quote a message or note", words: ["quote", "blockquote"], run: (editor) => { editor.chain().focus().toggleBlockquote().run(); } },
+  { id: "code", label: "Code", icon: Code, help: "Logs, errors or commands as written", words: ["code", "codeblock", "log"], run: (editor) => { editor.chain().focus().toggleCodeBlock().run(); } },
+  { id: "divider", label: "Divider", icon: Minus, help: "A line between parts", words: ["divider", "div", "line", "hr", "separator"], run: (editor) => { editor.chain().focus().setHorizontalRule().run(); } },
+  { id: "now", label: "Current time", icon: Clock, help: "Insert the time, e.g. 14:05", words: ["now", "time"], run: (editor) => { const now = new Date(); editor.chain().focus().insertContent(`${pad(now.getHours())}:${pad(now.getMinutes())} `).run(); } },
+  { id: "today", label: "Today's date", icon: CalendarBlank, help: "Insert the date, e.g. 17 Nov 2026", words: ["today", "date"], run: (editor) => { const now = new Date(); editor.chain().focus().insertContent(`${pad(now.getDate())} ${MONTHS[now.getMonth()]} ${now.getFullYear()} `).run(); } },
+];
+type Command = { kind: "entry"; type: EntryType; label: string; icon: typeof TextT; help: string; words: string[] } | { kind: "format"; id: string; label: string; icon: typeof TextT; help: string; words: string[]; run(editor: Editor): void };
+const matches = (query: string) => (item: { label: string; words: string[] }) => { const typed = query.toLowerCase(); return item.words.some((word) => word.startsWith(typed)) || item.label.toLowerCase().startsWith(typed); };
+/** Every "/" command whose name starts with what was typed. Entry types come first. */
+export function matchingCommands(query: string): Command[] {
+  return [...actions.filter(matches(query)).map((action) => ({ ...action, kind: "entry" as const })), ...formats.filter(matches(query)).map((format) => ({ ...format, kind: "format" as const }))];
+}
 type SlashCommand = { from: number; to: number; query: string; lineStart: boolean };
 /** Actions whose name starts with what was typed after "/" (for example "/fol" or "/to-do"). */
 export function matchingActions(query: string) {
@@ -20,8 +46,8 @@ export function matchingActions(query: string) {
 function slashCommandAt(state: { selection: { from: number; empty: boolean; $from: { parentOffset: number; parent: { textBetween(from: number, to: number): string } } } }): SlashCommand | null {
   const { selection } = state; if (!selection.empty) return null;
   const before = selection.$from.parent.textBetween(0, selection.$from.parentOffset);
-  const match = /(?:^|\s)\/([a-z-]{0,16})$/i.exec(before);
-  if (!match || !matchingActions(match[1]!).length) return null;
+  const match = /(?:^|\s)\/([a-z0-9-]{0,16})$/i.exec(before);
+  if (!match || !matchingCommands(match[1]!).length) return null;
   const lineStart = before.slice(0, before.length - match[1]!.length - 1).trim() === "";
   return { from: selection.from - match[1]!.length - 1, to: selection.from, query: match[1]!, lineStart };
 }
@@ -40,8 +66,24 @@ async function upload(parentId: string, file: File, disposition: "INLINE" | "ATT
   return api("/attachments", { method: "POST", body });
 }
 
+type EditorMark = { type: string; attrs?: Record<string, unknown> };
+const allowedText = new Set<string>(TEXT_COLORS.map((color) => color.value)); const allowedBackground = new Set<string>(BACKGROUND_COLORS.map((color) => color.value));
+/** Keeps only palette colours and safe links, for example from text pasted from another page. */
+function cleanNode(node: EditorNode & { marks?: EditorMark[] }): EditorNode {
+  const marks = node.marks?.flatMap((mark): EditorMark[] => {
+    if (mark.type === "textStyle") {
+      const color = typeof mark.attrs?.color === "string" && allowedText.has(mark.attrs.color.toLowerCase()) ? mark.attrs.color.toLowerCase() : null;
+      const backgroundColor = typeof mark.attrs?.backgroundColor === "string" && allowedBackground.has(mark.attrs.backgroundColor.toLowerCase()) ? mark.attrs.backgroundColor.toLowerCase() : null;
+      return color || backgroundColor ? [{ type: "textStyle", attrs: { color, backgroundColor } }] : [];
+    }
+    if (mark.type === "link") return typeof mark.attrs?.href === "string" && /^(https?:|mailto:)/i.test(mark.attrs.href) ? [mark] : [];
+    return [mark];
+  });
+  return { ...node, ...(marks ? { marks } : {}), ...(node.content ? { content: node.content.map(cleanNode) } : {}) } as EditorNode;
+}
 /** Blank lines left at the end while typing are not part of the saved entry. */
-function withoutTrailingBlankLines(document: EditorNode | undefined): EditorNode {
+function withoutTrailingBlankLines(input: EditorNode | undefined): EditorNode {
+  const document = input ? cleanNode(input) : undefined;
   const content = [...(document?.content ?? [])];
   while (content.length > 1 && content[content.length - 1]?.type === "paragraph" && !content[content.length - 1]?.content?.length) content.pop();
   return { ...(document ?? { type: "doc" }), content };
@@ -64,7 +106,7 @@ export function EntryComposer({ shiftId, operationalDate, onSaved, onHandover }:
   const [images, setImages] = useState<File[]>([]); const [files, setFiles] = useState<File[]>([]);
   const [slash, setSlash] = useState<SlashCommand | null>(null); const [highlight, setHighlight] = useState(0); const [mentionMenu, setMentionMenu] = useState(false);
   const slashRef = useRef<SlashCommand | null>(null); const highlightRef = useRef(0); const dismissedAt = useRef<number | null>(null);
-  const menu = slash !== null; const options = slash ? matchingActions(slash.query) : [];
+  const menu = slash !== null; const options = slash ? matchingCommands(slash.query) : [];
   const setMenu = (open: false) => { if (!open) { slashRef.current = null; setSlash(null); } };
   const [team, setTeam] = useState<Array<{ id: string; displayName: string }>>([]);
   const [saveState, setSaveState] = useState<SaveState>(restored?.entryId ? "saved" : "idle");
@@ -76,24 +118,25 @@ export function EntryComposer({ shiftId, operationalDate, onSaved, onHandover }:
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saving = useRef<Promise<void> | null>(null); const dirty = useRef(false); const mounted = useRef(true);
   const latest = useRef({ type, todos, images, files }); latest.current = { type, todos, images, files };
-  const callbacks = useRef({ onSaved, finish: () => Promise.resolve(false), changed: () => undefined as void, flush: () => Promise.resolve(), choose: (_next: EntryType) => undefined as void });
+  const callbacks = useRef({ onSaved, finish: () => Promise.resolve(false), changed: () => undefined as void, flush: () => Promise.resolve(), choose: (_next: EntryType) => undefined as void, run: (_command: Command) => undefined as void });
   const snapshot = useRef<{ html: string; text: string; json: EditorNode | undefined }>({ html: restored?.html ?? "", text: "", json: undefined });
   callbacks.current.onSaved = onSaved;
 
+  useEffect(() => { document.querySelector(".slash-menu button.highlighted")?.scrollIntoView({ block: "nearest" }); }, [highlight, slash]);
   useEffect(() => { api<Array<{ id: string; displayName: string }>>("/team").then(setTeam).catch(() => undefined); }, []);
 
   const editor = useEditor({
-    extensions: [StarterKit], content: restored?.html ?? "",
+    extensions: [StarterKit, TextStyle, Color, BackgroundColor, Placeholder.configure({ placeholder: "Write an update… type / for commands, @ to mention" })], content: restored?.html ?? "",
     editorProps: {
       attributes: { class: "tiptap-editor", "aria-label": "Write an update" },
       handlePaste: (_view, event) => { const pasted = [...(event.clipboardData?.files ?? [])].filter((file) => file.type.startsWith("image/")); if (!pasted.length) return false; setImages((current) => [...current, ...pasted]); callbacks.current.changed(); return true; },
       handleKeyDown: (view, event) => {
         const command = slashRef.current;
         if (command) {
-          const found = matchingActions(command.query);
+          const found = matchingCommands(command.query);
           if (event.key === "ArrowDown" || event.key === "ArrowUp") { const next = (highlightRef.current + (event.key === "ArrowDown" ? 1 : found.length - 1)) % found.length; highlightRef.current = next; setHighlight(next); return true; }
-          if (event.key === "Enter" || event.key === "Tab") { const picked = found[Math.min(highlightRef.current, found.length - 1)]; if (picked) { callbacks.current.choose(picked.type); return true; } }
-          if (event.key === " " && found.length === 1 && found[0]!.words.includes(command.query.toLowerCase())) { callbacks.current.choose(found[0]!.type); return true; }
+          if (event.key === "Enter" || event.key === "Tab") { const picked = found[Math.min(highlightRef.current, found.length - 1)]; if (picked) { callbacks.current.run(picked); return true; } }
+          if (event.key === " " && found.length === 1 && found[0]!.words.includes(command.query.toLowerCase())) { callbacks.current.run(found[0]!); return true; }
         }
         if (event.key === "Escape") { if (slashRef.current) dismissedAt.current = slashRef.current.from; slashRef.current = null; setSlash(null); setMentionMenu(false); callbacks.current.changed(); return false; }
         if (event.key !== "Enter" || event.shiftKey) return false;
@@ -255,6 +298,15 @@ export function EntryComposer({ shiftId, operationalDate, onSaved, onHandover }:
     if (next !== "TODO" && (editorRef.current?.getText().trim() ?? "")) changed(); else remember();
   }
   callbacks.current.choose = choose;
+  function runCommand(command: Command) {
+    if (command.kind === "entry") { choose(command.type); return; }
+    const typed = slashRef.current; slashRef.current = null; setSlash(null);
+    if (!editor) return;
+    if (typed) editor.chain().deleteRange({ from: typed.from, to: typed.to }).run();
+    command.run(editor);
+    changed();
+  }
+  callbacks.current.run = runCommand;
   function mention(displayName: string) {
     if (!editor) return;
     const { from } = editor.state.selection; const before = editor.state.doc.textBetween(Math.max(0, from - 1), from);
@@ -284,5 +336,6 @@ export function EntryComposer({ shiftId, operationalDate, onSaved, onHandover }:
   async function handover() { dirty.current = true; await flush(); onHandover(); }
   function attach(kind: "image" | "file", added: File[]) { if (kind === "image") setImages((current) => { const value = [...current, ...added]; latest.current = { ...latest.current, images: value }; return value; }); else setFiles((current) => { const value = [...current, ...added]; latest.current = { ...latest.current, files: value }; return value; }); changed(); }
 
-  return <section className="entry-composer" aria-label="Shift update composer"><div className="composer-body">{type === "TODO" ? <div className="todo-editor"><header><strong>To-do list</strong><button type="button" className="icon-button small" onClick={() => void closeTodoBlock()} aria-label="Close to-do list"><X /></button></header>{todos.map((item, index) => <div className="todo-editor-row" key={item.id}><input type="checkbox" disabled aria-label={`To-do item ${index + 1}`} /><input aria-label={`To-do text ${index + 1}`} data-todo-id={item.id} value={item.text} onChange={(event) => { emptyEnterRow.current = null; const text = event.target.value; updateTodos((current) => current.map((currentItem) => currentItem.id === item.id ? { ...currentItem, text } : currentItem)); }} onKeyDown={(event) => { if (event.key === "Enter" || (event.key === "Backspace" && !event.currentTarget.value)) { event.preventDefault(); todoKey(item.id, event.key); } }} onBlur={() => void flush()} placeholder={index === 0 ? "Add a to-do and press Enter" : "Another to-do"} /><button type="button" className="icon-button small remove-todo" onClick={() => removeTodo(item.id)} aria-label={`Remove to-do ${index + 1}`}><X /></button></div>)}</div> : <EditorContent editor={editor} />}{menu && options.length > 0 && <div className="slash-menu" role="menu" aria-label="Insert action">{options.map((action, index) => <button key={action.type} role="menuitem" className={index === Math.min(highlight, options.length - 1) ? "highlighted" : ""} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(action.type)}><action.icon /><span><strong>{action.label}</strong><small>{action.help}</small></span></button>)}<small className="slash-hint">Enter to choose · Esc to keep typing</small></div>}{mentionMenu && team.length > 0 && <div className="slash-menu mention-menu" role="menu" aria-label="Mention teammate">{team.map((member) => <button key={member.id} role="menuitem" onMouseDown={(event) => event.preventDefault()} onClick={() => mention(member.displayName)}><span><strong>@{member.displayName}</strong></span></button>)}</div>}{images.length > 0 && <div className="image-previews">{images.map((file, index) => <figure key={`${file.name}-${index}`}><img src={URL.createObjectURL(file)} alt={file.name} /><figcaption>{file.name}</figcaption></figure>)}</div>}{files.length > 0 && <ul className="pending-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><Paperclip /> {file.name}</li>)}</ul>}</div><footer><div className="composer-tools"><button className="icon-button" onClick={() => fileInput.current?.click()} aria-label="Attach file"><Paperclip /></button><button className="icon-button" onClick={() => imageInput.current?.click()} aria-label="Add image"><Image /></button><input ref={fileInput} hidden type="file" onChange={(event) => attach("file", Array.from(event.target.files ?? []))} /><input ref={imageInput} hidden type="file" accept="image/*" onChange={(event) => attach("image", Array.from(event.target.files ?? []))} /></div><div className="composer-actions"><span role="status" className={`save-state ${saveState}`}>{(images.length > 0 || files.length > 0) && saveState === "idle" ? "Add text to save the attachment" : statusText[saveState]}</span><button className="primary-button handover-button" onClick={() => void handover()}><ArrowRight /> Handover</button></div></footer></section>;
+  const kind = actions.find((action) => action.type === type)!;
+  return <section className="entry-composer" aria-label="Shift update composer"><div className="composer-body"><div className="composer-gutter" aria-hidden="true"><time>{saveState === "saved" || saveState === "saving" ? "now" : ""}</time><span className={`entry-label entry-label-${type.toLowerCase()}`}><kind.icon /> {kind.label}</span></div>{type === "TODO" ? <div className="todo-editor"><header><strong>To-do list</strong><button type="button" className="icon-button small" onClick={() => void closeTodoBlock()} aria-label="Close to-do list"><X /></button></header>{todos.map((item, index) => <div className="todo-editor-row" key={item.id}><input type="checkbox" disabled aria-label={`To-do item ${index + 1}`} /><input aria-label={`To-do text ${index + 1}`} data-todo-id={item.id} value={item.text} onChange={(event) => { emptyEnterRow.current = null; const text = event.target.value; updateTodos((current) => current.map((currentItem) => currentItem.id === item.id ? { ...currentItem, text } : currentItem)); }} onKeyDown={(event) => { if (event.key === "Enter" || (event.key === "Backspace" && !event.currentTarget.value)) { event.preventDefault(); todoKey(item.id, event.key); } }} onBlur={() => void flush()} placeholder={index === 0 ? "Add a to-do and press Enter" : "Another to-do"} /><button type="button" className="icon-button small remove-todo" onClick={() => removeTodo(item.id)} aria-label={`Remove to-do ${index + 1}`}><X /></button></div>)}</div> : <><EditorContent editor={editor} />{editor && <SelectionToolbar editor={editor} />}</>}{menu && options.length > 0 && <div className="slash-menu" role="menu" aria-label="Insert action">{options.map((action, index) => <button key={action.kind === "entry" ? action.type : action.id} role="menuitem" className={`${index === Math.min(highlight, options.length - 1) ? "highlighted" : ""}${index > 0 && action.kind === "format" && options[index - 1]?.kind === "entry" ? " group-start" : ""}`} onMouseDown={(event) => event.preventDefault()} onClick={() => runCommand(action)}><action.icon /><span><strong>{action.label}</strong><small>{action.help}</small></span></button>)}<small className="slash-hint">Enter to choose · Esc to keep typing</small></div>}{mentionMenu && team.length > 0 && <div className="slash-menu mention-menu" role="menu" aria-label="Mention teammate">{team.map((member) => <button key={member.id} role="menuitem" onMouseDown={(event) => event.preventDefault()} onClick={() => mention(member.displayName)}><span><strong>@{member.displayName}</strong></span></button>)}</div>}{images.length > 0 && <div className="image-previews">{images.map((file, index) => <figure key={`${file.name}-${index}`}><img src={URL.createObjectURL(file)} alt={file.name} /><figcaption>{file.name}</figcaption></figure>)}</div>}{files.length > 0 && <ul className="pending-files">{files.map((file, index) => <li key={`${file.name}-${index}`}><Paperclip /> {file.name}</li>)}</ul>}</div><footer><div className="composer-tools"><button className="icon-button" onClick={() => fileInput.current?.click()} aria-label="Attach file"><Paperclip /></button><button className="icon-button" onClick={() => imageInput.current?.click()} aria-label="Add image"><Image /></button><input ref={fileInput} hidden type="file" onChange={(event) => attach("file", Array.from(event.target.files ?? []))} /><input ref={imageInput} hidden type="file" accept="image/*" onChange={(event) => attach("image", Array.from(event.target.files ?? []))} /></div><div className="composer-actions"><span role="status" className={`save-state ${saveState}`}>{(images.length > 0 || files.length > 0) && saveState === "idle" ? "Add text to save the attachment" : statusText[saveState]}</span><button className="primary-button handover-button" onClick={() => void handover()}><ArrowRight /> Handover</button></div></footer></section>;
 }

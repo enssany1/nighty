@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
+    "@tiptap/extension-text-style": "^3.34.0",
+    "@tiptap/extensions": "^3.34.0",
     "@tiptap/react": "^3.34.0",
     "@tiptap/starter-kit": "^3.34.0",
     "react": "^19.2.0",

@@ -29,3 +29,10 @@ These rulings were given by the product owner after using the public deployment.
 - Images and files are uploaded as soon as the entry they belong to has text.
 - Pending text is saved before Handover, when the tab is hidden and when the composer closes. If a save fails, the text stays in the composer and on the device.
 - The landing view always opens the server's current operational day and follows it into a new day; a day opened from the calendar stays on screen.
+
+## 3. Typed slash commands, formatting and colours
+
+- Commands can be typed in full or in part (`/follow`, `/fol`, `/update`, `/to-do-list`) and picked with Enter, Tab or a space; arrows move through the list and Esc keeps the text. A command being typed is never saved.
+- Formatting commands: `/h1`, `/h2`, `/h3`, `/bullet`, `/num`, `/quote`, `/code`, `/divider`. Insert commands: `/now` (current time) and `/today` (today's date). They change the text, not the kind of entry.
+- Selecting text shows a toolbar with bold, italic, underline, strikethrough and seven Notion-style colours for text and for background. The API accepts only those colours.
+- The composer is part of the canvas: the entry being typed sits in the same columns as the saved entries, with its type and time on the left, on the same background, instead of in a separate white box.

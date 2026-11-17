@@ -33,6 +33,7 @@ This is a shared public test instance. Anything you enter is visible to other te
 - **Manual handover** – the outgoing shift decides when to hand over to the next shift; it is never forced by the clock.
 - **Automatic new day** – when the date changes, today's operational day opens on the shift scheduled for the current time and open Follow items carry over.
 - **Autosave** – entries are saved and shown on the board as you type; there is no Submit button.
+- **Slash commands and formatting** – type `/` for Update, To-do list, Follow, headings, lists, quotes, code, dividers, `/now` and `/today`; select text for bold, italic and seven Notion-style colours.
 - **Flexible schedules** – shifts may overlap, but the active schedule must cover all 24 hours with no gap.
 - **Tag whiteboards** – shared reference boards (for example `#issues`, `#maintenance`) with pasted images and file attachments.
 - **Search** across entries and whiteboards (`Ctrl K`).
