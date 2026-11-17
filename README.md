@@ -4,7 +4,7 @@
 
 Nighty is an open-source, self-hosted shift handover workspace for a 24/7 operations team (NOC, SOC, IT service desk, control room). Each operational day is one scrollable canvas where every shift logs updates, to-do lists and follow-ups. Handover is a deliberate, manual action, and open Follow items carry over to the next shift exactly once, so nothing is lost between teams.
 
-![Daily canvas with Morning, Evening and Night shifts](docs/screenshots/02-daily-canvas.png)
+![Daily canvas: earlier shifts collapsed, the current shift open with formatted entries](docs/screenshots/02-daily-canvas.png)
 
 ## Live demo
 
